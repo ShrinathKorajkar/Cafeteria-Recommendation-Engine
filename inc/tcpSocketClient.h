@@ -13,7 +13,7 @@ private:
     std::string serverAddress;
     int port;
     int clientSocket;
-    int MAX_DATA_TRANSFER_SIZE = 1024;
+    int MAX_DATA_TRANSFER_SIZE = 32768;
     TCPSocketClient(const std::string &serverAddress, int port);
 
     static std::shared_ptr<TCPSocketClient> instance;

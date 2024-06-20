@@ -22,6 +22,7 @@ void TCPSocketClient::createInstance(const std::string &serverAddress, int port)
         instance = std::shared_ptr<TCPSocketClient>(new TCPSocketClient(serverAddress, port));
     }
 }
+
 std::shared_ptr<TCPSocketClient> TCPSocketClient::getInstance()
 {
     if (!instance)

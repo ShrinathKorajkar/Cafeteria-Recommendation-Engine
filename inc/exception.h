@@ -7,13 +7,13 @@
 class CustomException : public std::exception
 {
 private:
-    std::string message;
+    std::string errorMessage;
 
 public:
-    explicit CustomException(const std::string &message) : message(message) {}
+    explicit CustomException(const std::string &message) : errorMessage(message) {}
     virtual const char *what() const noexcept override
     {
-        return message.c_str();
+        return errorMessage.c_str();
     }
 };
 

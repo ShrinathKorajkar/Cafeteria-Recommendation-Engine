@@ -2,32 +2,28 @@
 #define USER_H
 
 #include "utility.h"
-
 #include <string>
 
 class User
 {
 protected:
-    std::string user_id;
-    std::string name;
-    std::string password;
-    Role role;
-    int notification_number;
+    std::string userId;
+    std::string userName;
+    std::string userPassword;
+    UserRole userRole;
+    int notificationNumber;
 
 public:
-    User(const std::string &id,
-         const std::string &name,
-         const std::string &password,
-         const Role &role,
-         const int &notification_num);
+    User(const std::string &id, const std::string &name, const std::string &password, UserRole role, int notificationNumber)
+        : userId(id), userName(name), userPassword(password), userRole(role), notificationNumber(notificationNumber) {}
 
-    virtual ~User() {}
+    virtual ~User() = default;
 
-    std::string getId() const;
-    std::string getName() const;
-    std::string getPassword() const;
-    Role getRole() const;
-    int getNotificationNumber() const;
+    std::string getId() const { return userId; }
+    std::string getName() const { return userName; }
+    std::string getPassword() const { return userPassword; }
+    UserRole getRole() const { return userRole; }
+    int getnotificationNumber() const { return notificationNumber; }
 
     std::string serialize() const;
 };

@@ -3,6 +3,7 @@
 
 #include "networkConnection.h"
 #include "database.h"
+#include "sentimentAnalyzer.h"
 
 #include <memory>
 #include <netinet/in.h>
@@ -17,15 +18,19 @@ private:
     int port;
     bool running;
     std::vector<std::thread> clientThreads;
-    int MAX_DATA_TRANSFER_SIZE = 1024;
+    int MAX_DATA_TRANSFER_SIZE = 32768;
     int MAX_CLIENTS = 10;
 
     std::shared_ptr<Database> database;
+    std::shared_ptr<SentimentAnalyzer> analyzer;
 
+    std::string getCurrentDate();
     void handleClient(int clientSocket);
 
+    bool updateRecommendRating(const std::string &itemId);
+
 public:
-    TCPSocketServer(const int &port, std::shared_ptr<Database> database);
+    TCPSocketServer(const int &port, std::shared_ptr<Database> database, std::shared_ptr<SentimentAnalyzer> analyzer);
     ~TCPSocketServer();
     bool connect() override;
     bool disconnect() override;

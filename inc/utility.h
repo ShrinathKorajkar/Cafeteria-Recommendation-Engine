@@ -1,28 +1,23 @@
+
 #ifndef UTILITY_H
 #define UTILITY_H
 
 #include <string>
 
-enum Role
+enum class UserRole
 {
     ADMIN = 1,
     CHEF,
     EMPLOYEE
 };
 
-std::string userRoleToString(Role role);
-
-std::string toLower(const std::string &str);
-
-Role stringToUserRole(const std::string &role);
-
-enum LikeStatus
+enum class LikeStatus
 {
     LIKE,
     DISLIKE
 };
 
-enum FoodCategory
+enum class FoodCategory
 {
     BREAKFAST = 1,
     LUNCH,
@@ -30,17 +25,13 @@ enum FoodCategory
     ALL
 };
 
-std::string foodCategoryToString(FoodCategory category);
-
-FoodCategory stringToFoodCategory(const std::string &category);
-
-enum ResponseStatus
+enum class ResponseStatus
 {
     SUCCESS,
     FAILURE
 };
 
-enum RequestCode
+enum class RequestCode
 {
     LOGIN_USER,
     LOGOUT_USER,
@@ -54,6 +45,13 @@ enum RequestCode
     GET_FOOD_BY_CATEGORY
 };
 
+std::string userRoleToString(UserRole role);
+std::string toLower(const std::string &str);
+UserRole stringToUserRole(const std::string &role);
+std::string foodCategoryToString(FoodCategory category);
+FoodCategory stringToFoodCategory(const std::string &category);
+std::string likeStatusToString(LikeStatus status);
+LikeStatus stringToLikeStatus(const std::string &status);
 struct Request
 {
     RequestCode code;
@@ -64,11 +62,35 @@ struct Response
     ResponseStatus status;
 };
 
-struct Date
+struct Comment
 {
-    int day;
-    int month;
-    int year;
+    std::string userName;
+    std::string commentMessage;
+    std::string commentDate;
+};
+
+struct ReportData
+{
+    std::string name;
+    int totalOrders;
+
+    ReportData(const std::string &name, int orders) : name(name), totalOrders(orders) {}
+};
+
+struct OrderItem
+{
+    std::string menuItemId;
+    std::string menuItemName;
+
+    OrderItem(const std::string &id, const std::string &name) : menuItemId(id), menuItemName(name) {}
+};
+
+struct OrderResponse
+{
+    std::string foodName;
+    int totalOrders;
+
+    OrderResponse(const std::string &name, int orders) : foodName(name), totalOrders(orders) {}
 };
 
 #endif // UTILITY_H

@@ -1,19 +1,20 @@
 #ifndef ADMIN_H
 #define ADMIN_H
 
-#include "menuitem.h"
-#include "user.h"
+#include "menuItem.h"
 #include "tcpSocketClient.h"
-
+#include "user.h"
+#include <memory>
 #include <vector>
 
 class Admin : public User
 {
+private:
     std::shared_ptr<NetworkConnection> connection;
 
 public:
-    Admin(const std::string &id, const std::string &name, const std::string &password, const int &notification_num)
-        : User(id, name, password, Role::ADMIN, notification_num), connection(TCPSocketClient::getInstance()) {}
+    Admin(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
+        : User(id, name, password, UserRole::ADMIN, notificationNumber), connection(TCPSocketClient::getInstance()) {}
 
     std::string addMenuItem(const MenuItem &item);
     bool updateMenuItem(const MenuItem &item);

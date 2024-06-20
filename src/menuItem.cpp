@@ -42,7 +42,7 @@ int MenuItem::getDislikes() const
     return dislikes;
 }
 
-std::vector<std::string> MenuItem::getComments() const
+std::vector<Comment> MenuItem::getComments() const
 {
     return comments;
 }
@@ -64,9 +64,13 @@ bool MenuItem::dislike()
     return true;
 }
 
-bool MenuItem::addComment(const std::string &comment)
+bool MenuItem::addComment(const std::string &comment, const std::string &userName)
 {
-    comments.push_back(comment);
+    Comment newComment;
+    newComment.commentMessage = comment;
+    newComment.userName = userName;
+    newComment.commentDate = "";
+    comments.push_back(newComment);
     return true;
 }
 
@@ -86,7 +90,7 @@ std::string MenuItem::serialize() const
     ss << comments.size() << ",";
     for (const auto &comment : comments)
     {
-        ss << comment << ",";
+        ss << comment.userName << "," << comment.commentMessage << "," << comment.commentDate;
     }
 
     ss << sentiments.size() << ",";
@@ -96,4 +100,17 @@ std::string MenuItem::serialize() const
     }
 
     return ss.str();
+}
+
+std::vector<MenuItem> getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category)
+{
+    std::vector<MenuItem> subMenuItems;
+    for (const auto &menuItem : menuItems)
+    {
+        if (menuItem.getCategory() == category)
+        {
+            subMenuItems.push_back(menuItem);
+        }
+    }
+    return subMenuItems;
 }

@@ -175,7 +175,7 @@ std::vector<User> Admin::getAllUsers() const
                 std::string notificationNumberStr;
                 std::getline(iss, notificationNumberStr, ',');
 
-                Role role = stringToUserRole(roleStr);
+                UserRole role = stringToUserRole(roleStr);
                 int notificationNumber = std::stoi(notificationNumberStr);
 
                 users.emplace_back(User(userId, name, password, role, notificationNumber));
@@ -223,6 +223,7 @@ std::vector<MenuItem> Admin::getAllMenuItems() const
                 bool availability;
                 int likes;
                 int dislikes;
+                double totalRatings;
 
                 std::getline(iss, itemId, ',');
                 std::getline(iss, name, ',');
@@ -249,6 +250,10 @@ std::vector<MenuItem> Admin::getAllMenuItems() const
                 std::getline(iss, dislikesStr, ',');
                 dislikes = std::stoi(dislikesStr);
 
+                std::string ratingStr;
+                std::getline(iss, ratingStr, ',');
+                totalRatings = std::stod(dislikesStr);
+
                 std::getline(iss, tempToken, ',');
                 int sentimentCount = std::stoi(tempToken);
 
@@ -260,7 +265,19 @@ std::vector<MenuItem> Admin::getAllMenuItems() const
                     sentiments.push_back(sentiment);
                 }
 
-                items.emplace_back(MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments));
+                std::getline(iss, tempToken, ',');
+                int commentCount = std::stoi(tempToken);
+                std::vector<Comment> comments;
+                for (int j = 0; j < commentCount; j++)
+                {
+                    Comment comment;
+                    std::getline(iss, comment.userName, ',');
+                    std::getline(iss, comment.commentMessage, ',');
+                    std::getline(iss, comment.commentDate, ',');
+                    comments.push_back(comment);
+                }
+
+                items.emplace_back(MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments));
             }
         }
 

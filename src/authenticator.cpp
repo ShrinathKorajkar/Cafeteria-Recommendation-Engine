@@ -1,4 +1,4 @@
-#include "userManager.h"
+#include "authenticator.h"
 #include "utility.h"
 #include "admin.h"
 #include "chef.h"
@@ -8,7 +8,7 @@
 #include <sstream>
 #include <memory>
 
-std::unique_ptr<User> UserManager::getUser(const std::string &username, const std::string &password)
+std::unique_ptr<User> Authenticator::getUser(const std::string &username, const std::string &password)
 {
     std::ostringstream oss;
     oss << "LOGIN_USER," << username << "," << password;
@@ -52,29 +52,4 @@ std::unique_ptr<User> UserManager::getUser(const std::string &username, const st
     {
         return std::make_unique<Employee>("-1", "", "", 0);
     }
-}
-
-bool UserManager::changePassword(User &user, const std::string &newPassword)
-{
-    std::ostringstream oss;
-    oss << "CHANGE_PASSWORD " << user.getId() << " " << newPassword;
-    connection->send(oss.str());
-
-    std::string response = connection->receive();
-    if (response == "SUCCESS")
-    {
-        // user.setPassword(newPassword);
-        return true;
-    }
-    return false;
-}
-
-bool UserManager::logoutUser(const User &user)
-{
-    std::ostringstream oss;
-    oss << "LOGOUT " << user.getId();
-    connection->send(oss.str());
-
-    std::string response = connection->receive();
-    return response == "SUCCESS";
 }

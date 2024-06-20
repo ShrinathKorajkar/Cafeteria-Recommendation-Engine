@@ -2,34 +2,41 @@
 
 #include <algorithm>
 
-std::string userRoleToString(Role role)
-{
-    switch (role)
-    {
-    case Role::ADMIN:
-        return "ADMIN";
-    case Role::CHEF:
-        return "CHEF";
-    case Role::EMPLOYEE:
-        return "EMPLOYEE";
-    }
-    return "";
-}
-
 std::string toLower(const std::string &str)
 {
     std::string result = str;
     std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c)
                    { return std::tolower(c); });
+
     return result;
 }
 
-Role stringToUserRole(const std::string &role)
+std::string userRoleToString(UserRole role)
+{
+    switch (role)
+    {
+    case UserRole::ADMIN:
+        return "admin";
+    case UserRole::CHEF:
+        return "chef";
+    case UserRole::EMPLOYEE:
+        return "employee";
+    }
+
+    return "unknown";
+}
+
+UserRole stringToUserRole(const std::string &role)
 {
     std::string lowerStr = toLower(role);
-    Role userRole = (lowerStr == "admin") ? ADMIN : (lowerStr == "chef") ? CHEF
-                                                                         : EMPLOYEE;
-    return userRole;
+
+    if (lowerStr == "admin")
+        return UserRole::ADMIN;
+
+    if (lowerStr == "chef")
+        return UserRole::CHEF;
+
+    return UserRole::EMPLOYEE;
 }
 
 std::string foodCategoryToString(FoodCategory category)
@@ -46,7 +53,7 @@ std::string foodCategoryToString(FoodCategory category)
         return "all day";
     }
 
-    return "";
+    return "unknown";
 }
 
 FoodCategory stringToFoodCategory(const std::string &category)
@@ -54,19 +61,38 @@ FoodCategory stringToFoodCategory(const std::string &category)
     std::string lowerStr = toLower(category);
 
     if (lowerStr == "breakfast")
-    {
         return FoodCategory::BREAKFAST;
-    }
-    else if (lowerStr == "lunch")
-    {
+
+    if (lowerStr == "lunch")
         return FoodCategory::LUNCH;
-    }
-    else if (lowerStr == "dinner")
-    {
+
+    if (lowerStr == "dinner")
         return FoodCategory::DINNER;
+
+    return FoodCategory::ALL;
+}
+
+std::string likeStatusToString(LikeStatus status)
+{
+    switch (status)
+    {
+    case LikeStatus::LIKE:
+        return "like";
+    case LikeStatus::DISLIKE:
+        return "dislike";
+    }
+
+    return "unknown";
+}
+
+LikeStatus stringToLikeStatus(const std::string &status)
+{
+    if (status == "like")
+    {
+        return LikeStatus::LIKE;
     }
     else
     {
-        return FoodCategory::ALL;
+        return LikeStatus::DISLIKE;
     }
 }
