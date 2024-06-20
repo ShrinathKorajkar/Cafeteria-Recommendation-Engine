@@ -1,21 +1,30 @@
 #include "reportGenerator.h"
-
 #include <fstream>
-#include <iostream>
-#include <sstream>
+
+ReportGenerator::ReportGenerator() {}
 
 std::string ReportGenerator::generateReport(const std::vector<ReportData> &reportData)
 {
-    std::ofstream outFile(filename);
-    if (outFile.is_open())
+    std::ofstream reportFile(filename);
+    if (reportFile.is_open())
     {
-        outFile << "name,totalOrders\n";
-        for (const auto &data : reportData)
-        {
-            outFile << data.name << "," << data.totalOrders << "\n";
-        }
-        outFile.close();
+        writeHeader(reportFile);
+        writeData(reportData, reportFile);
+        reportFile.close();
         return filename;
     }
     return "";
+}
+
+void ReportGenerator::writeHeader(std::ofstream &reportFile)
+{
+    reportFile << "name,totalOrders\n";
+}
+
+void ReportGenerator::writeData(const std::vector<ReportData> &reportData, std::ofstream &reportFile)
+{
+    for (const auto &data : reportData)
+    {
+        reportFile << data.name << "," << data.totalOrders << "\n";
+    }
 }

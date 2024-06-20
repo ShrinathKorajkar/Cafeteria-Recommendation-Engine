@@ -43,13 +43,13 @@ std::vector<std::string> SimpleSentimentAnalyzer::findMatchingSentiments(const s
 
     for (const auto &sentiment : sentiments)
     {
-        auto it = std::search(comment.begin(), comment.end(), sentiment.begin(), sentiment.end(),
-                              [](char ch1, char ch2)
-                              {
-                                  return std::tolower(ch1) == std::tolower(ch2);
-                              });
+        auto iterator = std::search(comment.begin(), comment.end(), sentiment.begin(), sentiment.end(),
+                                    [](char ch1, char ch2)
+                                    {
+                                        return std::tolower(ch1) == std::tolower(ch2);
+                                    });
 
-        if (it != comment.end())
+        if (iterator != comment.end())
         {
             matchedSentiments.push_back(sentiment);
         }

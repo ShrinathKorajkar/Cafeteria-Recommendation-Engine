@@ -1,10 +1,27 @@
 #include "menuitem.h"
+#include "utility.h"
 
 #include <sstream>
 
+MenuItem::MenuItem(const std::string &id, const std::string &name, double price, const std::string &description,
+                   FoodCategory category, bool availability)
+    : itemId(id), name(name), price(price), description(description),
+      category(category), availability(availability), likes(0), dislikes(0)
+{
+}
+
+MenuItem::MenuItem(const std::string &id, const std::string &name, double price, const std::string &description,
+                   FoodCategory category, bool availability, int likes, int dislikes,
+                   const std::vector<std::string> &sentiments, const std::vector<Comment> &comments)
+    : itemId(id), name(name), price(price), description(description),
+      category(category), availability(availability), likes(likes), dislikes(dislikes),
+      sentiments(sentiments), comments(comments)
+{
+}
+
 std::string MenuItem::getItemId() const
 {
-    return item_id;
+    return itemId;
 }
 
 std::string MenuItem::getName() const
@@ -82,27 +99,89 @@ bool MenuItem::updateSentiments(const std::string &sentiment)
 
 std::string MenuItem::serialize() const
 {
-    std::stringstream ss;
-    ss << item_id << "," << name << "," << price << ","
-       << description << "," << foodCategoryToString(category) << ","
-       << availability << "," << likes << "," << dislikes << ",";
+    std::stringstream dataStream;
+    dataStream << itemId << getDelimiterChar()
+               << name << getDelimiterChar()
+               << price << getDelimiterChar()
+               << description << getDelimiterChar()
+               << foodCategoryToString(category) << getDelimiterChar()
+               << (availability ? "1" : "0") << getDelimiterChar()
+               << likes << getDelimiterChar()
+               << dislikes << getDelimiterChar();
 
-    ss << comments.size() << ",";
-    for (const auto &comment : comments)
-    {
-        ss << comment.userName << "," << comment.commentMessage << "," << comment.commentDate;
-    }
-
-    ss << sentiments.size() << ",";
+    dataStream << sentiments.size() << getDelimiterChar();
     for (const auto &sentiment : sentiments)
     {
-        ss << sentiment << ",";
+        dataStream << sentiment << getDelimiterString();
     }
 
-    return ss.str();
+    dataStream << comments.size() << getDelimiterChar();
+    for (const auto &comment : comments)
+    {
+        dataStream << comment.userName << getDelimiterChar()
+                   << comment.commentMessage << getDelimiterChar()
+                   << comment.commentDate << getDelimiterChar();
+    }
+
+    return dataStream.str();
 }
 
-std::vector<MenuItem> getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category)
+MenuItem MenuItem::deserialize(std::stringstream &dataStream)
+{
+    std::string token;
+
+    std::getline(dataStream, token, getDelimiterChar());
+    std::string itemId = token;
+
+    std::getline(dataStream, token, getDelimiterChar());
+    std::string name = token;
+
+    std::getline(dataStream, token, getDelimiterChar());
+    double price = std::stod(token);
+
+    std::getline(dataStream, token, getDelimiterChar());
+    std::string description = token;
+
+    std::getline(dataStream, token, getDelimiterChar());
+    FoodCategory category = stringToFoodCategory(token);
+
+    std::getline(dataStream, token, getDelimiterChar());
+    bool availability = (token == "1");
+
+    std::getline(dataStream, token, getDelimiterChar());
+    int likes = std::stoi(token);
+
+    std::getline(dataStream, token, getDelimiterChar());
+    int dislikes = std::stoi(token);
+
+    std::getline(dataStream, token, getDelimiterChar());
+    int sentimentsCount = std::stoi(token);
+    std::vector<std::string> sentiments;
+    for (int i = 0; i < sentimentsCount; ++i)
+    {
+        std::getline(dataStream, token, getDelimiterChar());
+        sentiments.push_back(token);
+    }
+
+    std::getline(dataStream, token, getDelimiterChar());
+    int commentsCount = std::stoi(token);
+    std::vector<Comment> comments;
+    for (int i = 0; i < commentsCount; ++i)
+    {
+        Comment comment;
+        std::getline(dataStream, token, getDelimiterChar());
+        comment.userName = token;
+        std::getline(dataStream, token, getDelimiterChar());
+        comment.commentMessage = token;
+        std::getline(dataStream, token, getDelimiterChar());
+        comment.commentDate = token;
+        comments.push_back(comment);
+    }
+
+    return MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments);
+}
+
+std::vector<MenuItem> MenuItem::getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category)
 {
     std::vector<MenuItem> subMenuItems;
     for (const auto &menuItem : menuItems)

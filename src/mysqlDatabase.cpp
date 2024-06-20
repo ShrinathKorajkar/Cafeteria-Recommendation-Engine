@@ -1,45 +1,38 @@
 #include "mysqlDatabase.h"
 #include "exception.h"
+#include <memory>
 
 std::shared_ptr<MySQLDatabase> MySQLDatabase::instance = nullptr;
 
 MySQLDatabase::MySQLDatabase(const std::string &host, const std::string &user, const std::string &password, const std::string &database)
-    : driver(nullptr), con(nullptr), host(host), user(user), password(password)
+    : driver(nullptr), connection(nullptr), hostName(host), userName(user), password(password), databaseName(database)
 {
     try
     {
         driver = sql::mysql::get_mysql_driver_instance();
-        con = driver->connect(host, user, password);
-        if (con)
+        if (!driver)
         {
-            con->setSchema(database);
+            throw DatabaseException("MySQL driver initialization failed.");
+        }
+
+        connection = std::unique_ptr<sql::Connection>(driver->connect(host, user, password));
+        if (connection)
+        {
+            connection->setSchema(database);
         }
         else
         {
             throw DatabaseException("Failed to establish connection to the database.");
         }
     }
-    catch (std::exception &e)
+    catch (const sql::SQLException &e)
     {
         throw DatabaseException("MySQL Connection Error: " + std::string(e.what()));
     }
-}
-
-void MySQLDatabase::createInstance(const std::string &host, const std::string &user, const std::string &password, const std::string &database)
-{
-    if (!instance)
+    catch (const std::exception &e)
     {
-        instance = std::shared_ptr<MySQLDatabase>(new MySQLDatabase(host, user, password, database));
+        throw DatabaseException("Error during MySQL initialization: " + std::string(e.what()));
     }
-}
-
-std::shared_ptr<MySQLDatabase> MySQLDatabase::getInstance()
-{
-    if (!instance)
-    {
-        throw DatabaseException("No instance of MySQLDatabase has been created.");
-    }
-    return instance;
 }
 
 MySQLDatabase::~MySQLDatabase()
@@ -48,25 +41,9 @@ MySQLDatabase::~MySQLDatabase()
     {
         disconnect();
     }
-    catch (sql::SQLException &e)
+    catch (const std::exception &e)
     {
         std::cerr << "Error while disconnecting: " << e.what() << std::endl;
-    }
-}
-
-bool MySQLDatabase::connect()
-{
-    try
-    {
-        if (!con)
-        {
-            con = driver->connect(host, user, password);
-        }
-        return true;
-    }
-    catch (sql::SQLException &e)
-    {
-        throw DatabaseException("MySQL Connection Error: " + std::string(e.what()));
     }
 }
 
@@ -74,16 +51,35 @@ bool MySQLDatabase::disconnect()
 {
     try
     {
-        if (con)
+        if (connection)
         {
-            delete con;
-            con = nullptr;
+            connection.reset();
         }
         return true;
     }
-    catch (sql::SQLException &e)
+    catch (const sql::SQLException &e)
     {
         throw DatabaseException("MySQL Disconnection Error: " + std::string(e.what()));
+    }
+}
+
+bool MySQLDatabase::connect()
+{
+    try
+    {
+        if (!connection)
+        {
+            connection = std::unique_ptr<sql::Connection>(driver->connect(hostName, userName, password));
+            if (connection)
+            {
+                connection->setSchema(databaseName);
+            }
+        }
+        return true;
+    }
+    catch (const sql::SQLException &e)
+    {
+        throw DatabaseException("MySQL Connection Error: " + std::string(e.what()));
     }
 }
 
@@ -92,13 +88,11 @@ bool MySQLDatabase::executeQuery(const std::string &query)
     checkConnection();
     try
     {
-        sql::Statement *stmt = con->createStatement();
+        std::unique_ptr<sql::Statement> stmt(connection->createStatement());
         stmt->execute(query);
-        delete stmt;
-
         return true;
     }
-    catch (sql::SQLException &e)
+    catch (const sql::SQLException &e)
     {
         throw DatabaseException("MySQL Query Execution Error: " + std::string(e.what()));
     }
@@ -110,8 +104,8 @@ std::vector<std::vector<std::string>> MySQLDatabase::fetchRows(const std::string
     std::vector<std::vector<std::string>> result;
     try
     {
-        sql::Statement *stmt = con->createStatement();
-        sql::ResultSet *res = stmt->executeQuery(query);
+        std::unique_ptr<sql::Statement> stmt(connection->createStatement());
+        std::unique_ptr<sql::ResultSet> res(stmt->executeQuery(query));
 
         int num_fields = res->getMetaData()->getColumnCount();
         while (res->next())
@@ -124,11 +118,9 @@ std::vector<std::vector<std::string>> MySQLDatabase::fetchRows(const std::string
             result.push_back(row);
         }
 
-        delete res;
-        delete stmt;
         return result;
     }
-    catch (sql::SQLException &e)
+    catch (const sql::SQLException &e)
     {
         throw DatabaseException("MySQL Query Execution Error: " + std::string(e.what()));
     }
@@ -136,8 +128,26 @@ std::vector<std::vector<std::string>> MySQLDatabase::fetchRows(const std::string
 
 void MySQLDatabase::checkConnection()
 {
-    if (!con)
+    if (!connection)
     {
         throw DatabaseException("No connection to the database.");
     }
+}
+
+std::shared_ptr<MySQLDatabase> MySQLDatabase::createInstance(const std::string &host, const std::string &user, const std::string &password, const std::string &database)
+{
+    if (!instance)
+    {
+        instance = std::shared_ptr<MySQLDatabase>(new MySQLDatabase(host, user, password, database));
+    }
+    return instance;
+}
+
+std::shared_ptr<MySQLDatabase> MySQLDatabase::getInstance()
+{
+    if (!instance)
+    {
+        throw DatabaseException("No instance of MySQLDatabase has been created.");
+    }
+    return instance;
 }

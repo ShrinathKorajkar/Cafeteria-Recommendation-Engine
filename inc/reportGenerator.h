@@ -1,17 +1,26 @@
-#ifndef GENERATEREPORT_H
-#define GENERATEREPORT_H
-
-#include "utility.h"
+#pragma once
 
 #include <vector>
 #include <string>
 
-class ReportGenerator
+struct ReportData
 {
-    const std::string filename = "./assets/food_report.csv";
+    std::string name;
+    int totalOrders;
 
-public:
-    std::string generateReport(const std::vector<ReportData> &reportData);
+    ReportData(const std::string &name, int totalOrders)
+        : name(name), totalOrders(totalOrders) {}
 };
 
-#endif // GENERATEREPORT_H
+class ReportGenerator
+{
+private:
+    const std::string filename = "./assets/food_report.csv";
+
+    void writeHeader(std::ofstream &outFile);
+    void writeData(const std::vector<ReportData> &reportData, std::ofstream &outFile);
+
+public:
+    ReportGenerator();
+    std::string generateReport(const std::vector<ReportData> &reportData);
+};

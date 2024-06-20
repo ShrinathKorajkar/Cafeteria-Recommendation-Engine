@@ -1,8 +1,7 @@
-
-#ifndef UTILITY_H
-#define UTILITY_H
+#pragma once
 
 #include <string>
+#include <unordered_map>
 
 enum class UserRole
 {
@@ -34,32 +33,23 @@ enum class ResponseStatus
 enum class RequestCode
 {
     LOGIN_USER,
-    LOGOUT_USER,
-    REGISTER_USER,
-    ADD_FOOD,
-    REMOVE_FOOD,
-    ADD_REVIEW,
-    REMOVE_REVIEW,
-    GET_FOOD,
-    GET_REVIEW,
-    GET_FOOD_BY_CATEGORY
-};
-
-std::string userRoleToString(UserRole role);
-std::string toLower(const std::string &str);
-UserRole stringToUserRole(const std::string &role);
-std::string foodCategoryToString(FoodCategory category);
-FoodCategory stringToFoodCategory(const std::string &category);
-std::string likeStatusToString(LikeStatus status);
-LikeStatus stringToLikeStatus(const std::string &status);
-struct Request
-{
-    RequestCode code;
-};
-
-struct Response
-{
-    ResponseStatus status;
+    ADD_USER,
+    DELETE_USER,
+    ADD_MENU_ITEM,
+    DELETE_MENU_ITEM,
+    GET_ALL_USERS,
+    GET_ALL_MENU_ITEMS,
+    GET_NOTIFICATIONS,
+    ROLL_OUT_DAILY_MENU,
+    GET_RESPONSE_ORDERS,
+    GET_RECOMMENDED_MENU,
+    GENERATE_REPORT,
+    GET_DAILY_MENU,
+    ORDER_FOOD,
+    GET_TODAYS_ORDER,
+    LIKE_DISLIKE,
+    GIVE_FEEDBACK,
+    CLOSE_CONNECTION
 };
 
 struct Comment
@@ -67,14 +57,6 @@ struct Comment
     std::string userName;
     std::string commentMessage;
     std::string commentDate;
-};
-
-struct ReportData
-{
-    std::string name;
-    int totalOrders;
-
-    ReportData(const std::string &name, int orders) : name(name), totalOrders(orders) {}
 };
 
 struct OrderItem
@@ -93,4 +75,16 @@ struct OrderResponse
     OrderResponse(const std::string &name, int orders) : foodName(name), totalOrders(orders) {}
 };
 
-#endif // UTILITY_H
+char getDelimiterChar();
+std::string getDelimiterString();
+std::string userRoleToString(UserRole role);
+std::string toLower(const std::string &str);
+UserRole stringToUserRole(const std::string &role);
+std::string foodCategoryToString(FoodCategory category);
+FoodCategory stringToFoodCategory(const std::string &category);
+std::string likeStatusToString(LikeStatus status);
+LikeStatus stringToLikeStatus(const std::string &status);
+std::string requestCodeToString(RequestCode code);
+RequestCode stringToRequestCode(const std::string &str);
+std::string responseStatusToString(ResponseStatus status);
+ResponseStatus stringToResponseStatus(const std::string &str);

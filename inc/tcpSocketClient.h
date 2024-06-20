@@ -1,10 +1,10 @@
-#ifndef CLIENT_H
-#define CLIENT_H
+#pragma once
 
 #include "networkConnection.h"
+#include "utility.h"
 #include <memory>
-
 #include <netinet/in.h>
+#include <string>
 
 class TCPSocketClient : public NetworkConnection
 {
@@ -13,22 +13,19 @@ private:
     std::string serverAddress;
     int port;
     int clientSocket;
-    int MAX_DATA_TRANSFER_SIZE = 32768;
-    TCPSocketClient(const std::string &serverAddress, int port);
+    static constexpr int MAX_DATA_TRANSFER_SIZE = 32768;
 
     static std::shared_ptr<TCPSocketClient> instance;
+
+    TCPSocketClient(const std::string &serverAddress, int port);
 
 public:
     static void createInstance(const std::string &serverAddress, int port);
     static std::shared_ptr<TCPSocketClient> getInstance();
     ~TCPSocketClient();
+
     bool connect() override;
     bool disconnect() override;
     bool send(const std::string &message) override;
     std::string receive() override;
-
-    // std::stringstream serializeMessage();
-    // std::string deserializeMessage(std::stringstream &message);
 };
-
-#endif // CLIENT_H

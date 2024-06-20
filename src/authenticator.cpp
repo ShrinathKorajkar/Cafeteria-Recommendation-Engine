@@ -1,45 +1,42 @@
-#include "authenticator.h"
-#include "utility.h"
 #include "admin.h"
+#include "authenticator.h"
 #include "chef.h"
 #include "employee.h"
-
+#include "utility.h"
 #include <iostream>
 #include <sstream>
-#include <memory>
 
-std::unique_ptr<User> Authenticator::getUser(const std::string &username, const std::string &password)
+std::unique_ptr<User> Authenticator::authenticateUser(const std::string &username, const std::string &password)
 {
-    std::ostringstream oss;
-    oss << "LOGIN_USER," << username << "," << password;
+    std::stringstream oss;
+    oss << requestCodeToString(RequestCode::LOGIN_USER) << getDelimiterString() << username << getDelimiterString() << password;
     connection->send(oss.str());
 
     std::string response = connection->receive();
-    std::stringstream iss(response);
-    std::string status;
+    std::stringstream dataStream(response);
+    std::string responseStatus;
     std::string userId;
     int notification_num;
     std::string name, roleStr, pass;
 
-    std::cout << "response: " << response << std::endl;
+    std::getline(dataStream, responseStatus, getDelimiterChar());
 
-    std::getline(iss, status, ',');
-    if (status == "SUCCESS")
+    if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
     {
         std::string temptocken;
 
-        std::getline(iss, userId, ',');
-        std::getline(iss, name, ',');
-        std::getline(iss, pass, ',');
-        std::getline(iss, roleStr, ',');
-        std::getline(iss, temptocken, ',');
+        std::getline(dataStream, userId, getDelimiterChar());
+        std::getline(dataStream, name, getDelimiterChar());
+        std::getline(dataStream, pass, getDelimiterChar());
+        std::getline(dataStream, roleStr, getDelimiterChar());
+        std::getline(dataStream, temptocken, getDelimiterChar());
         notification_num = std::stoi(temptocken);
 
-        if (roleStr == "admin")
+        if (stringToUserRole(roleStr) == UserRole::ADMIN)
         {
             return std::make_unique<Admin>(userId, name, pass, notification_num);
         }
-        else if (roleStr == "chef")
+        else if (stringToUserRole(roleStr) == UserRole::CHEF)
         {
             return std::make_unique<Chef>(userId, name, pass, notification_num);
         }

@@ -1,75 +1,36 @@
 #include "chef.h"
-#include "tcpSocketClient.h"
 #include "exception.h"
 #include "reportGenerator.h"
-
+#include "tcpSocketClient.h"
 #include <sstream>
 
-std::vector<std::string> Chef::getPendingNotifications()
-{
-    try
-    {
-        std::string request = "GET_PENDING_NOTIFICATIONS," + getId() + "," + std::to_string(getnotificationNumber());
-        connection->send(request);
-
-        std::string response = connection->receive();
-        std::stringstream responseStream(response);
-
-        std::vector<std::string> notifications;
-        std::string responseStatus;
-
-        std::getline(responseStream, responseStatus, ',');
-        if (responseStatus == "SUCCESS")
-        {
-            std::string notificationData;
-            std::getline(responseStream, notificationData, ',');
-
-            notificationNumber = std::stoi(notificationData);
-
-            while (std::getline(responseStream, notificationData, ','))
-            {
-                notifications.push_back(notificationData);
-            }
-        }
-
-        return notifications;
-    }
-    catch (const std::exception &e)
-    {
-        throw BadActionException("Error fetching notifications: " + std::string(e.what()));
-    }
-}
+Chef::Chef(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
+    : User(id, name, password, UserRole::CHEF, notificationNumber), connection(TCPSocketClient::getInstance()) {}
 
 bool Chef::rollOutDailyMenu(const std::vector<MenuItem> &items)
 {
     try
     {
-        std::string request = "ROLL_OUT_DAILY_MENU," + std::to_string(items.size());
+        std::string request = requestCodeToString(RequestCode::ROLL_OUT_DAILY_MENU) + getDelimiterString() + std::to_string(items.size());
 
         for (const auto &item : items)
         {
-            request += "," + item.getItemId();
+            request += getDelimiterString() + item.getItemId();
         }
 
         connection->send(request);
 
         std::string response = connection->receive();
         std::stringstream responseStream(response);
-
-        std::vector<std::string> notifications;
         std::string responseStatus;
 
-        std::getline(responseStream, responseStatus, ',');
-        if (responseStatus == "SUCCESS")
-        {
-            return true;
-        }
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        return false;
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error fetching notifications: " + std::string(e.what()));
+        throw BadActionException("Error rolling out daily menu: " + std::string(e.what()));
     }
 }
 
@@ -77,27 +38,27 @@ std::vector<OrderResponse> Chef::getOrderResponses() const
 {
     try
     {
-        std::string request = "GET_RESPONSE_ORDERS";
+        std::string request = requestCodeToString(RequestCode::GET_RESPONSE_ORDERS);
         connection->send(request);
 
         std::string response = connection->receive();
         std::stringstream responseStream(response);
         std::vector<OrderResponse> orders;
-        std::string status;
+        std::string responseStatus;
 
-        std::getline(responseStream, status, ',');
-        if (status == "SUCCESS")
+        std::getline(responseStream, responseStatus, getDelimiterChar());
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::string menuItem;
-            std::string quantityStr;
-            int quantity;
+            std::string totalItemsStr;
+            int totalItems;
 
-            while (std::getline(responseStream, menuItem, ','))
+            while (std::getline(responseStream, menuItem, getDelimiterChar()))
             {
-                std::getline(responseStream, quantityStr, ',');
-                quantity = std::stoi(quantityStr);
+                std::getline(responseStream, totalItemsStr, getDelimiterChar());
+                totalItems = std::stoi(totalItemsStr);
 
-                orders.emplace_back(menuItem, quantity);
+                orders.emplace_back(menuItem, totalItems);
             }
         }
 
@@ -105,15 +66,15 @@ std::vector<OrderResponse> Chef::getOrderResponses() const
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error Generating Notification: " + std::string(e.what()));
+        throw BadActionException("Error getting order response: " + std::string(e.what()));
     }
 }
 
-std::vector<MenuItem> Chef::getAllMenuItems() const
+std::vector<MenuItem> Chef::getRecommendedMenu() const
 {
     try
     {
-        std::string request = "GET_ALL_MENU_ITEMS";
+        std::string request = requestCodeToString(RequestCode::GET_RECOMMENDED_MENU);
         connection->send(request);
 
         std::string response = connection->receive();
@@ -121,79 +82,19 @@ std::vector<MenuItem> Chef::getAllMenuItems() const
         std::vector<MenuItem> menuItems;
 
         std::string responseStatus;
-        std::getline(responseStream, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             int rowCount;
 
             std::string tempToken;
-            std::getline(responseStream, tempToken, ',');
+            std::getline(responseStream, tempToken, getDelimiterChar());
             rowCount = std::stoi(tempToken);
 
             for (int i = 0; i < rowCount; i++)
             {
-                std::string itemId;
-                std::string name;
-                double price;
-                std::string description;
-                FoodCategory category;
-                bool availability;
-                int likes;
-                int dislikes;
-
-                std::getline(responseStream, itemId, ',');
-                std::getline(responseStream, name, ',');
-
-                std::string priceStr;
-                std::getline(responseStream, priceStr, ',');
-                price = std::stod(priceStr);
-
-                std::getline(responseStream, description, ',');
-
-                std::string categoryStr;
-                std::getline(responseStream, categoryStr, ',');
-                category = stringToFoodCategory(categoryStr);
-
-                std::string availabilityStr;
-                std::getline(responseStream, availabilityStr, ',');
-                availability = std::stoi(availabilityStr);
-
-                std::string likesStr;
-                std::getline(responseStream, likesStr, ',');
-                likes = std::stoi(likesStr);
-
-                std::string dislikesStr;
-                std::getline(responseStream, dislikesStr, ',');
-                dislikes = std::stoi(dislikesStr);
-
-                std::string rating;
-                std::getline(responseStream, rating, ',');
-
-                std::getline(responseStream, tempToken, ',');
-                int sentimentCount = std::stoi(tempToken);
-
-                std::vector<std::string> sentiments;
-                std::string sentiment;
-                for (int j = 0; j < sentimentCount; j++)
-                {
-                    std::getline(responseStream, sentiment, ',');
-                    sentiments.push_back(sentiment);
-                }
-
-                std::getline(responseStream, tempToken, ',');
-                int commentCount = std::stoi(tempToken);
-                std::vector<Comment> comments;
-                for (int j = 0; j < commentCount; j++)
-                {
-                    Comment comment;
-                    std::getline(responseStream, comment.userName, ',');
-                    std::getline(responseStream, comment.commentMessage, ',');
-                    std::getline(responseStream, comment.commentDate, ',');
-                    comments.push_back(comment);
-                }
-
-                menuItems.emplace_back(MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments));
+                menuItems.emplace_back(MenuItem::deserialize(responseStream));
             }
         }
 
@@ -201,103 +102,7 @@ std::vector<MenuItem> Chef::getAllMenuItems() const
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error fetching all menu items: " + std::string(e.what()));
-    }
-}
-
-std::vector<MenuItem> Chef::getRecommendedDailyMenu() const
-{
-    try
-    {
-        std::string request = "GET_RECOMMENDED_MENU";
-        connection->send(request);
-
-        std::string response = connection->receive();
-        std::stringstream responseStream(response);
-        std::vector<MenuItem> menuItems;
-
-        std::string responseStatus;
-        std::getline(responseStream, responseStatus, ',');
-
-        if (responseStatus == "SUCCESS")
-        {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(responseStream, tempToken, ',');
-            rowCount = std::stoi(tempToken);
-
-            for (int i = 0; i < rowCount; i++)
-            {
-                std::string itemId;
-                std::string name;
-                double price;
-                std::string description;
-                FoodCategory category;
-                bool availability;
-                int likes;
-                int dislikes;
-
-                std::getline(responseStream, itemId, ',');
-                std::getline(responseStream, name, ',');
-
-                std::string priceStr;
-                std::getline(responseStream, priceStr, ',');
-                price = std::stod(priceStr);
-
-                std::getline(responseStream, description, ',');
-
-                std::string categoryStr;
-                std::getline(responseStream, categoryStr, ',');
-                category = stringToFoodCategory(categoryStr);
-
-                std::string availabilityStr;
-                std::getline(responseStream, availabilityStr, ',');
-                availability = std::stoi(availabilityStr);
-
-                std::string likesStr;
-                std::getline(responseStream, likesStr, ',');
-                likes = std::stoi(likesStr);
-
-                std::string dislikesStr;
-                std::getline(responseStream, dislikesStr, ',');
-                dislikes = std::stoi(dislikesStr);
-
-                std::string ratingStr;
-                std::getline(responseStream, ratingStr, ',');
-
-                std::getline(responseStream, tempToken, ',');
-                int sentimentCount = std::stoi(tempToken);
-
-                std::vector<std::string> sentiments;
-                std::string sentiment;
-                for (int j = 0; j < sentimentCount; j++)
-                {
-                    std::getline(responseStream, sentiment, ',');
-                    sentiments.push_back(sentiment);
-                }
-
-                std::getline(responseStream, tempToken, ',');
-                int commentCount = std::stoi(tempToken);
-                std::vector<Comment> comments;
-                for (int j = 0; j < commentCount; j++)
-                {
-                    Comment comment;
-                    std::getline(responseStream, comment.userName, ',');
-                    std::getline(responseStream, comment.commentMessage, ',');
-                    std::getline(responseStream, comment.commentDate, ',');
-                    comments.push_back(comment);
-                }
-
-                menuItems.emplace_back(MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments));
-            }
-        }
-
-        return menuItems;
-    }
-    catch (const std::exception &e)
-    {
-        throw BadActionException("Error fetching menu items: " + std::string(e.what()));
+        throw BadActionException("Error fetching daily menu: " + std::string(e.what()));
     }
 }
 
@@ -305,15 +110,16 @@ std::string Chef::generateReport(const int &month, const int &year) const
 {
     try
     {
-        std::string request = "GENERATE_REPORT," + std::to_string(month) + "," + std::to_string(year);
+        std::string request = requestCodeToString(RequestCode::GENERATE_REPORT) + getDelimiterString() +
+                              std::to_string(month) + getDelimiterString() + std::to_string(year);
         connection->send(request);
 
         std::string response = connection->receive();
         std::stringstream responseStream(response);
-        std::string status;
+        std::string responseStatus;
 
-        std::getline(responseStream, status, ',');
-        if (status == "SUCCESS")
+        std::getline(responseStream, responseStatus, getDelimiterChar());
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::vector<ReportData> report;
 
@@ -321,9 +127,9 @@ std::string Chef::generateReport(const int &month, const int &year) const
             std::string orderCountString;
             int orderCount;
 
-            while (std::getline(responseStream, itemName, ','))
+            while (std::getline(responseStream, itemName, getDelimiterChar()))
             {
-                std::getline(responseStream, orderCountString, ',');
+                std::getline(responseStream, orderCountString, getDelimiterChar());
                 orderCount = std::stoi(orderCountString);
 
                 report.emplace_back(itemName, orderCount);
@@ -337,6 +143,6 @@ std::string Chef::generateReport(const int &month, const int &year) const
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error Generating Notification: " + std::string(e.what()));
+        throw BadActionException("Error Generating Report: " + std::string(e.what()));
     }
 }

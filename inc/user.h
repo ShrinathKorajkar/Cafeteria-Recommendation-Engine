@@ -1,8 +1,11 @@
-#ifndef USER_H
-#define USER_H
+#pragma once
 
 #include "utility.h"
+#include "menuItem.h"
+#include "networkConnection.h"
+#include <memory>
 #include <string>
+#include <vector>
 
 class User
 {
@@ -13,9 +16,10 @@ protected:
     UserRole userRole;
     int notificationNumber;
 
+    std::shared_ptr<NetworkConnection> connection;
+
 public:
-    User(const std::string &id, const std::string &name, const std::string &password, UserRole role, int notificationNumber)
-        : userId(id), userName(name), userPassword(password), userRole(role), notificationNumber(notificationNumber) {}
+    User(const std::string &id, const std::string &name, const std::string &password, UserRole role, int notificationNumber);
 
     virtual ~User() = default;
 
@@ -23,9 +27,11 @@ public:
     std::string getName() const { return userName; }
     std::string getPassword() const { return userPassword; }
     UserRole getRole() const { return userRole; }
-    int getnotificationNumber() const { return notificationNumber; }
+    int getNotificationNumber() const { return notificationNumber; }
+
+    std::vector<MenuItem> getAllMenuItems() const;
+    std::vector<std::string> getPendingNotifications();
 
     std::string serialize() const;
+    static User deserialize(std::stringstream &dataStream);
 };
-
-#endif // USER_H

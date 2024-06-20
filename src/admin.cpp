@@ -1,29 +1,30 @@
 #include "admin.h"
 #include "exception.h"
-
 #include <sstream>
+
+Admin::Admin(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
+    : User(id, name, password, UserRole::ADMIN, notificationNumber), connection(TCPSocketClient::getInstance()) {}
 
 std::string Admin::addMenuItem(const MenuItem &item)
 {
     try
     {
-        std::string message = "ADD_MENU_ITEM," + item.serialize();
-        connection->send(message);
+        std::string newItemId;
+        std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) + getDelimiterString() + item.serialize();
+        connection->send(request);
 
         std::string response = connection->receive();
-        std::istringstream iss(response);
+        std::stringstream responseStream(response);
 
         std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            std::string newItemId;
-            std::getline(iss, newItemId, ',');
-            return newItemId;
+            std::getline(responseStream, newItemId, getDelimiterChar());
         }
 
-        return "";
+        return newItemId;
     }
     catch (const std::exception &e)
     {
@@ -35,21 +36,16 @@ bool Admin::deleteMenuItem(const std::string &itemId)
 {
     try
     {
-        std::string message = "DELETE_ITEM," + itemId;
-        connection->send(message);
+        std::string request = requestCodeToString(RequestCode::DELETE_MENU_ITEM) + getDelimiterString() + itemId;
+        connection->send(request);
 
         std::string response = connection->receive();
-        std::istringstream iss(response);
+        std::stringstream responseStream(response);
 
         std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
-        {
-            return true;
-        }
-
-        return false;
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
     }
     catch (const std::exception &e)
     {
@@ -61,23 +57,22 @@ std::string Admin::addUser(const User &user)
 {
     try
     {
-        std::string message = "ADD_USER," + user.serialize();
-        connection->send(message);
+        std::string newUserId;
+        std::string request = requestCodeToString(RequestCode::ADD_USER) + getDelimiterString() + user.serialize();
+        connection->send(request);
 
         std::string response = connection->receive();
-        std::istringstream iss(response);
+        std::stringstream responseStream(response);
 
         std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            std::string newUserId;
-            std::getline(iss, newUserId, ',');
-            return newUserId;
+            std::getline(responseStream, newUserId, getDelimiterChar());
         }
 
-        return "";
+        return newUserId;
     }
     catch (const std::exception &e)
     {
@@ -89,21 +84,16 @@ bool Admin::deleteUser(const std::string &userId)
 {
     try
     {
-        std::string message = "DELETE_USER," + userId;
-        connection->send(message);
+        std::string request = requestCodeToString(RequestCode::DELETE_USER) + userId;
+        connection->send(request);
 
         std::string response = connection->receive();
-        std::istringstream iss(response);
+        std::stringstream responseStream(response);
 
         std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
-        {
-            return true;
-        }
-
-        return false;
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
     }
     catch (const std::exception &e)
     {
@@ -117,40 +107,26 @@ std::vector<User> Admin::getAllUsers() const
     {
         std::vector<User> users;
 
-        std::string message = "GET_ALL_USERS";
-        connection->send(message);
+        std::string request = requestCodeToString(RequestCode::GET_ALL_USERS);
+        connection->send(request);
 
         std::string response = connection->receive();
-        std::istringstream iss(response);
+        std::stringstream responseStream(response);
 
         std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
+        std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (responseStatus == "SUCCESS")
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             int rowCount;
 
             std::string tempToken;
-            std::getline(iss, tempToken, ',');
+            std::getline(responseStream, tempToken, getDelimiterChar());
             rowCount = std::stoi(tempToken);
 
             for (int i = 0; i < rowCount; i++)
             {
-                std::string userId;
-                std::getline(iss, userId, ',');
-                std::string name;
-                std::getline(iss, name, ',');
-                std::string password;
-                std::getline(iss, password, ',');
-                std::string roleStr;
-                std::getline(iss, roleStr, ',');
-                std::string notificationNumberStr;
-                std::getline(iss, notificationNumberStr, ',');
-
-                UserRole role = stringToUserRole(roleStr);
-                int notificationNumber = std::stoi(notificationNumberStr);
-
-                users.emplace_back(User(userId, name, password, role, notificationNumber));
+                users.emplace_back(User::deserialize(responseStream));
             }
         }
 
@@ -159,104 +135,5 @@ std::vector<User> Admin::getAllUsers() const
     catch (const std::exception &e)
     {
         throw BadActionException("Error fetching all users: " + std::string(e.what()));
-    }
-}
-
-std::vector<MenuItem> Admin::getAllMenuItems() const
-{
-    try
-    {
-        std::vector<MenuItem> items;
-
-        std::string message = "GET_ALL_MENU_ITEMS";
-        connection->send(message);
-
-        std::string response = connection->receive();
-        std::istringstream iss(response);
-
-        std::string responseStatus;
-        std::getline(iss, responseStatus, ',');
-
-        if (responseStatus == "SUCCESS")
-        {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(iss, tempToken, ',');
-            rowCount = std::stoi(tempToken);
-
-            for (int i = 0; i < rowCount; i++)
-            {
-                std::string itemId;
-                std::string name;
-                double price;
-                std::string description;
-                FoodCategory category;
-                bool availability;
-                int likes;
-                int dislikes;
-                double totalRatings;
-
-                std::getline(iss, itemId, ',');
-                std::getline(iss, name, ',');
-
-                std::string priceStr;
-                std::getline(iss, priceStr, ',');
-                price = std::stod(priceStr);
-
-                std::getline(iss, description, ',');
-
-                std::string categoryStr;
-                std::getline(iss, categoryStr, ',');
-                category = stringToFoodCategory(categoryStr);
-
-                std::string availabilityStr;
-                std::getline(iss, availabilityStr, ',');
-                availability = std::stoi(availabilityStr);
-
-                std::string likesStr;
-                std::getline(iss, likesStr, ',');
-                likes = std::stoi(likesStr);
-
-                std::string dislikesStr;
-                std::getline(iss, dislikesStr, ',');
-                dislikes = std::stoi(dislikesStr);
-
-                std::string ratingStr;
-                std::getline(iss, ratingStr, ',');
-                totalRatings = std::stod(dislikesStr);
-
-                std::getline(iss, tempToken, ',');
-                int sentimentCount = std::stoi(tempToken);
-
-                std::vector<std::string> sentiments;
-                std::string sentiment;
-                for (int j = 0; j < sentimentCount; j++)
-                {
-                    std::getline(iss, sentiment, ',');
-                    sentiments.push_back(sentiment);
-                }
-
-                std::getline(iss, tempToken, ',');
-                int commentCount = std::stoi(tempToken);
-                std::vector<Comment> comments;
-                for (int j = 0; j < commentCount; j++)
-                {
-                    Comment comment;
-                    std::getline(iss, comment.userName, ',');
-                    std::getline(iss, comment.commentMessage, ',');
-                    std::getline(iss, comment.commentDate, ',');
-                    comments.push_back(comment);
-                }
-
-                items.emplace_back(MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments));
-            }
-        }
-
-        return items;
-    }
-    catch (const std::exception &e)
-    {
-        throw BadActionException("Error fetching all menu items: " + std::string(e.what()));
     }
 }

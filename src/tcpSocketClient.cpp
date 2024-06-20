@@ -1,5 +1,6 @@
-#include "tcpSocketClient.h"
 #include "exception.h"
+#include "tcpSocketClient.h"
+#include "utility.h"
 
 #include <arpa/inet.h>
 #include <iostream>
@@ -60,7 +61,7 @@ bool TCPSocketClient::disconnect()
 {
     if (clientSocket != -1)
     {
-        send("CLOSE_CONNECTION");
+        send(requestCodeToString(RequestCode::CLOSE_CONNECTION));
     }
     close(clientSocket);
     clientSocket = -1;
@@ -73,7 +74,6 @@ bool TCPSocketClient::send(const std::string &message)
     {
         throw NetworkConnectionException("Failed to send data to server");
     }
-
     return true;
 }
 

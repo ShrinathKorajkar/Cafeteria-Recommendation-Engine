@@ -1,5 +1,4 @@
-#ifndef CUSTOMEXCEPTION_H
-#define CUSTOMEXCEPTION_H
+#pragma once
 
 #include <exception>
 #include <string>
@@ -10,7 +9,7 @@ private:
     std::string errorMessage;
 
 public:
-    explicit CustomException(const std::string &message) : errorMessage(message) {}
+    explicit CustomException(const std::string &message) {}
     virtual const char *what() const noexcept override
     {
         return errorMessage.c_str();
@@ -34,5 +33,3 @@ class BadActionException : public CustomException
 public:
     using CustomException::CustomException;
 };
-
-#endif // CUSTOMEXCEPTION_H

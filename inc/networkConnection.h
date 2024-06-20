@@ -1,16 +1,13 @@
-#ifndef CONNECTION_H
-#define CONNECTION_H
+#pragma once
 
 #include <string>
 
 class NetworkConnection
 {
 public:
-    virtual ~NetworkConnection() {}
+    virtual ~NetworkConnection() = default;
     virtual bool connect() = 0;
     virtual bool disconnect() = 0;
     virtual bool send(const std::string &message) = 0;
     virtual std::string receive() = 0;
 };
-
-#endif // CONNECTION_H
