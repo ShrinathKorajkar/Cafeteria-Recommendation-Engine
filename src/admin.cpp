@@ -31,20 +31,6 @@ std::string Admin::addMenuItem(const MenuItem &item)
     }
 }
 
-bool Admin::updateMenuItem(const MenuItem &item)
-{
-    try
-    {
-        std::string message = "UPDATE_ITEM:" + item.serialize();
-        connection->send(message);
-        return true;
-    }
-    catch (const std::exception &e)
-    {
-        throw BadActionException("Error updating menu item: " + std::string(e.what()));
-    }
-}
-
 bool Admin::deleteMenuItem(const std::string &itemId)
 {
     try
@@ -96,20 +82,6 @@ std::string Admin::addUser(const User &user)
     catch (const std::exception &e)
     {
         throw BadActionException("Error adding user: " + std::string(e.what()));
-    }
-}
-
-bool Admin::updateUser(const User &user)
-{
-    try
-    {
-        // std::string message = "UPDATE_USER:" + user.serialize();
-        // connection->send(message);
-        return true;
-    }
-    catch (const std::exception &e)
-    {
-        throw BadActionException("Error updating user: " + std::string(e.what()));
     }
 }
 

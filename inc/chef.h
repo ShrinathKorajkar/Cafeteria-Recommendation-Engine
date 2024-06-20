@@ -20,7 +20,6 @@ public:
     std::vector<OrderResponse> getOrderResponses() const;
     std::vector<MenuItem> getAllMenuItems() const;
     std::vector<MenuItem> getRecommendedDailyMenu() const;
-    bool updateDailyMenu(const std::vector<MenuItem> &items);
     std::string generateReport(const int &month, const int &year) const;
 };
 

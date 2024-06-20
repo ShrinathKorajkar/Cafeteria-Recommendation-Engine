@@ -301,20 +301,6 @@ std::vector<MenuItem> Chef::getRecommendedDailyMenu() const
     }
 }
 
-bool Chef::updateDailyMenu(const std::vector<MenuItem> &items)
-{
-    // std::ostringstream oss;
-    // oss << "UPDATE_DAILY_MENU," << getId();
-    // for (const auto &item : items)
-    // {
-    //     oss << "," << item.toString();
-    // }
-    // connection->send(oss.str());
-
-    std::string response = connection->receive();
-    return response == "SUCCESS";
-}
-
 std::string Chef::generateReport(const int &month, const int &year) const
 {
     try

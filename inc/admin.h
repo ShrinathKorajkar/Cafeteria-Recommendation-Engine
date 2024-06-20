@@ -17,10 +17,8 @@ public:
         : User(id, name, password, UserRole::ADMIN, notificationNumber), connection(TCPSocketClient::getInstance()) {}
 
     std::string addMenuItem(const MenuItem &item);
-    bool updateMenuItem(const MenuItem &item);
     bool deleteMenuItem(const std::string &itemId);
     std::string addUser(const User &user);
-    bool updateUser(const User &user);
     bool deleteUser(const std::string &userId);
 
     std::vector<User> getAllUsers() const;
