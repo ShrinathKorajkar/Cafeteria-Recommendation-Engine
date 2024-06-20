@@ -94,7 +94,6 @@ void TCPSocketServer::handleClient(int clientSocket)
     while ((bytesRead = read(clientSocket, buffer, MAX_DATA_TRANSFER_SIZE)) > 0)
     {
         buffer[bytesRead] = '\0';
-        std::cout << "Received message: " << buffer << std::endl;
 
         std::stringstream receivedMessageStream(buffer);
         std::string requestType;
@@ -334,7 +333,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 response = "FAILURE";
                 std::cout << e.what() << std::endl;
             }
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
 
@@ -371,7 +369,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 response = "FAILURE";
                 std::cout << e.what() << std::endl;
             }
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
 
@@ -445,7 +442,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 std::cout << e.what() << std::endl;
             }
 
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
 
@@ -481,7 +477,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 response = "FAILURE";
                 std::cout << e.what() << std::endl;
             }
-            std::cout << response << std::endl;
 
             write(clientSocket, response.c_str(), response.size());
         }
@@ -532,7 +527,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 response = "FAILURE";
                 std::cout << e.what() << std::endl;
             }
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
 
@@ -586,7 +580,7 @@ void TCPSocketServer::handleClient(int clientSocket)
                                     "JOIN Order_Item oi ON uo.order_id = oi.order_id "
                                     "JOIN Menu_Item mi ON oi.item_id = mi.item_id "
                                     "WHERE uo.user_id = " +
-                                    userId + " AND uo.order_date = CURDATE() ";
+                                    userId + " AND uo.order_date = CURDATE() - INTERVAL 1 DAY";
 
                 std::vector<std::vector<std::string>> orders = database->fetchRows(query);
 
@@ -603,7 +597,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 response = "FAILURE";
                 std::cout << e.what() << std::endl;
             }
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
 
@@ -703,7 +696,6 @@ void TCPSocketServer::handleClient(int clientSocket)
                 std::cout << e.what() << std::endl;
             }
 
-            std::cout << response << std::endl;
             write(clientSocket, response.c_str(), response.size());
         }
     }

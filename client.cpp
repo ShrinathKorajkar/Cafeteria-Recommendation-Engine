@@ -358,7 +358,7 @@ void showAdminMenu(std::unique_ptr<User> &user)
         std::cout << "4. Delete menu item" << std::endl;
         std::cout << "5. View all users" << std::endl;
         std::cout << "6. View all menu items" << std::endl;
-        std::cout << "7. Go Back" << std::endl;
+        std::cout << "7. Log out" << std::endl;
 
         while (true)
         {
@@ -705,7 +705,7 @@ void showChefMenu(std::unique_ptr<User> &user)
         std::cout << "3. Roll out tomorrow's menu" << std::endl;
         std::cout << "4. View tomorrow's order response" << std::endl;
         std::cout << "5. Generate report" << std::endl;
-        std::cout << "6. Go Back" << std::endl;
+        std::cout << "6. Log out" << std::endl;
 
         while (true)
         {
@@ -860,7 +860,7 @@ void placeTomorrowsOrder(Employee *employee)
         std::cout << "Failed to place order." << std::endl;
     }
 
-    waitForUser();
+    waitForUser2();
 }
 
 void giveFeedbackEmployee(Employee *employee)
@@ -964,7 +964,7 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
         std::cout << "2. View all menu items" << std::endl;
         std::cout << "3. Place Tomorrow's order" << std::endl;
         std::cout << "4. Give Feedback for Today's Order" << std::endl;
-        std::cout << "5. Go Back" << std::endl;
+        std::cout << "5. Log out" << std::endl;
 
         while (true)
         {

@@ -167,6 +167,9 @@ std::vector<MenuItem> Chef::getAllMenuItems() const
                 std::getline(responseStream, dislikesStr, ',');
                 dislikes = std::stoi(dislikesStr);
 
+                std::string rating;
+                std::getline(responseStream, rating, ',');
+
                 std::getline(responseStream, tempToken, ',');
                 int sentimentCount = std::stoi(tempToken);
 
