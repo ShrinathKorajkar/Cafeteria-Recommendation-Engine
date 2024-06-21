@@ -19,6 +19,8 @@ void ClientHandler::start()
     {
         buffer[bytesRead] = '\0';
         std::string request(buffer);
+
+        std::cout << "received : " << request << std::endl;
         handleRequest(request);
     }
     close(clientSocket);
@@ -70,19 +72,27 @@ void ClientHandler::handleCloseConnection(std::stringstream &)
 
 void ClientHandler::handleLoginUser(std::stringstream &receivedMessageStream)
 {
-    std::string user_id, password;
-    std::getline(receivedMessageStream, user_id, getDelimiterChar());
+    std::string userId, password;
+    std::getline(receivedMessageStream, userId, getDelimiterChar());
     std::getline(receivedMessageStream, password, getDelimiterChar());
 
-    auto databaseResponse = database->fetchRows("SELECT * FROM User WHERE user_id = " + user_id + " AND password = '" + password + "'");
-    std::string response = (databaseResponse.size() == 1) ? "SUCCESS" : "FAILURE";
-
-    if (response == "SUCCESS")
+    std::string response = "FAILURE";
+    try
     {
-        for (const auto &col : databaseResponse[0])
+        std::string query = "SELECT * FROM User WHERE user_id = " + userId + " AND password = '" + password + "'";
+        auto queryResult = database->fetchRows(query);
+        if (queryResult.size() == 1)
         {
-            response += getDelimiterString() + col;
+            response = "SUCCESS";
+            for (std::string col : queryResult[0])
+            {
+                response += getDelimiterString() + col;
+            }
         }
+    }
+    catch (const DatabaseException &e)
+    {
+        std::cout << e.what() << std::endl;
     }
 
     write(clientSocket, response.c_str(), response.size());
@@ -100,9 +110,10 @@ void ClientHandler::handleAddUser(std::stringstream &receivedMessageStream)
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO User(name, password, role, notification_number) values('" + name + "," + password + "," + roleStr + "'," + notification_number + ")");
+        database->executeQuery("INSERT INTO User(name, password, role, notification_number) values('" + name + "getDelimiterChar()" + password + "getDelimiterChar()" + roleStr + "'," + notification_number + ")");
         auto queryResult = database->fetchRows("SELECT user_id FROM User WHERE name = '" + name + "'");
-        response = "SUCCESS," + queryResult[0][0];
+        std::string userIdCol = queryResult[0][0];
+        response = "SUCCESS" + getDelimiterString() + userIdCol;
     }
     catch (const DatabaseException &e)
     {
@@ -120,7 +131,8 @@ void ClientHandler::handleDeleteUser(std::stringstream &receivedMessageStream)
     std::string response = "FAILURE";
     try
     {
-        if (database->fetchRows("SELECT * FROM User WHERE user_id = " + userId).size() > 0)
+        auto query = "SELECT user_id FROM User WHERE user_id = " + userId;
+        if (database->fetchRows(query).size() > 0)
         {
             database->executeQuery("DELETE FROM User WHERE user_id = " + userId);
             response = "SUCCESS";
@@ -140,7 +152,7 @@ void ClientHandler::handleGetAllUsers(std::stringstream &)
     try
     {
         auto queryResult = database->fetchRows("SELECT * FROM User");
-        response = "SUCCESS," + std::to_string(queryResult.size());
+        response = "SUCCESS" + getDelimiterString() + std::to_string(queryResult.size());
 
         for (const auto &row : queryResult)
         {
@@ -160,7 +172,8 @@ void ClientHandler::handleGetAllUsers(std::stringstream &)
 
 void ClientHandler::handleAddMenuItem(std::stringstream &receivedMessageStream)
 {
-    std::string name, price, description, category, availability;
+    std::string itemId, name, price, description, category, availability;
+    std::getline(receivedMessageStream, itemId, getDelimiterChar());
     std::getline(receivedMessageStream, name, getDelimiterChar());
     std::getline(receivedMessageStream, price, getDelimiterChar());
     std::getline(receivedMessageStream, description, getDelimiterChar());
@@ -174,7 +187,7 @@ void ClientHandler::handleAddMenuItem(std::stringstream &receivedMessageStream)
     {
         database->executeQuery("INSERT INTO Menu_Item(name, price, description, category, availability) VALUES ('" + name + "', " + price + ", '" + description + "', '" + category + "', " + availability + ")");
         auto queryResult = database->fetchRows("SELECT item_id FROM Menu_Item WHERE name = '" + name + "'");
-        response = "SUCCESS," + queryResult[0][0];
+        response = "SUCCESS" + getDelimiterString() + queryResult[0][0];
     }
     catch (const DatabaseException &e)
     {
@@ -302,18 +315,30 @@ void ClientHandler::handleGetRecommendedMenu(std::stringstream &receivedMessageS
 
 void ClientHandler::handleGetPendingNotifications(std::stringstream &receivedMessageStream)
 {
-    std::string response = "FAILURE";
     std::string userId;
     std::getline(receivedMessageStream, userId, getDelimiterChar());
 
+    std::string notificationNumber;
+    std::getline(receivedMessageStream, notificationNumber, getDelimiterChar());
+
+    std::string response = "FAILURE";
     try
     {
-        auto notificationData = database->fetchRows("SELECT notification FROM Notifications WHERE user_id = " + userId + " AND status = 'pending'");
-        response = "SUCCESS," + std::to_string(notificationData.size());
+        std::vector<std::vector<std::string>> queryResult = database->fetchRows("SELECT message, notification_id FROM Notification "
+                                                                                "WHERE notification_date = CURDATE() AND notification_id > " +
+                                                                                notificationNumber + " ORDER BY notification_id ASC");
 
-        for (const auto &notification : notificationData)
+        int rowCount = queryResult.size();
+        if (rowCount > 0)
         {
-            response += getDelimiterString() + notification[0];
+            std::string maxNotificationNumber = queryResult[queryResult.size() - 1][1];
+            database->executeQuery("UPDATE User SET notification_number = " + maxNotificationNumber + " WHERE user_id = " + userId);
+
+            response = "SUCCESS," + maxNotificationNumber;
+            for (std::vector<std::string> row : queryResult)
+            {
+                response += getDelimiterString() + row[0];
+            }
         }
     }
     catch (const DatabaseException &e)
@@ -326,10 +351,27 @@ void ClientHandler::handleGetPendingNotifications(std::stringstream &receivedMes
 
 void ClientHandler::handleRollOutDailyMenu(std::stringstream &)
 {
+    std::string menuSizeStr;
+    std::getline(receivedMessageStream, menuSizeStr, getDelimiterChar());
+    int menuSize = std::stoi(menuSizeStr);
+
+    std::string query = "INSERT INTO Daily_Menu(item_id) VALUES";
+    std::string itemId;
+    for (int i = 0; i < menuSize - 1; i++)
+    {
+        std::getline(receivedMessageStream, itemId, getDelimiterChar());
+        query += "(" + itemId + "),";
+    }
+    std::getline(receivedMessageStream, itemId, getDelimiterChar());
+    query += "(" + itemId + ");";
+
     std::string response = "FAILURE";
+
     try
     {
-        database->executeQuery("UPDATE Menu_Item SET daily = true");
+        database->executeQuery(query);
+        std::string notificationMessage = "Chef has rolled out Menu for " + getCurrentDate() + ". Checkout Now";
+        database->executeQuery("INSERT INTO Notification(message) VALUES ('" + notificationMessage + "')");
         response = "SUCCESS";
     }
     catch (const DatabaseException &e)
@@ -342,17 +384,32 @@ void ClientHandler::handleRollOutDailyMenu(std::stringstream &)
 
 void ClientHandler::handleGenerateReport(std::stringstream &)
 {
+    std::string month;
+    std::string year;
+
+    std::getline(receivedMessageStream, month, getDelimiterChar());
+    std::getline(receivedMessageStream, year, getDelimiterChar());
+
     std::string response = "FAILURE";
     try
     {
-        auto reportData = database->fetchRows("SELECT * FROM Report");
-        response = "SUCCESS," + std::to_string(reportData.size());
+        std::string query = "SELECT mi.name, COUNT(oi.item_id) AS total_orders "
+                            "FROM Menu_Item mi "
+                            "JOIN Order_Item oi ON mi.item_id = oi.item_id "
+                            "JOIN User_Order uo ON oi.order_id = uo.order_id "
+                            "WHERE YEAR(uo.order_date) = " +
+                            year + " AND MONTH(uo.order_date) = " + month +
+                            " GROUP BY mi.item_id, mi.name, mi.category "
+                            "ORDER BY total_orders DESC";
 
-        for (const auto &row : reportData)
+        std::vector<std::vector<std::string>> report = database->fetchRows(query);
+        response = "SUCCESS";
+
+        for (const auto &reportRow : report)
         {
-            for (const auto &col : row)
+            for (const auto &reportCol : reportRow)
             {
-                response += getDelimiterString() + col;
+                response += getDelimiterString() + reportCol;
             }
         }
     }
@@ -369,14 +426,25 @@ void ClientHandler::handleGetResponseOrders(std::stringstream &)
     std::string response = "FAILURE";
     try
     {
-        auto orderData = database->fetchRows("SELECT * FROM Orders WHERE status = 'pending'");
-        response = "SUCCESS," + std::to_string(orderData.size());
+        std::string query = "SELECT mi.name, COUNT(oi.item_id) as orderCount "
+                            "FROM Menu_Item mi "
+                            "JOIN Order_Item oi ON mi.item_id = oi.item_id "
+                            "JOIN User_Order uo ON oi.order_id = uo.order_id "
+                            "WHERE uo.order_date = CURDATE() "
+                            "GROUP BY mi.name ORDER BY orderCount DESC";
 
-        for (const auto &row : orderData)
+        std::vector<std::vector<std::string>> orders = database->fetchRows(query);
+
+        if (orders.size() != 0)
         {
-            for (const auto &col : row)
+            response = "SUCCESS";
+
+            for (const auto &ordersRow : orders)
             {
-                response += getDelimiterString() + col;
+                for (const auto &ordersCol : ordersRow)
+                {
+                    response += getDelimiterString() + ordersCol;
+                }
             }
         }
     }
@@ -390,17 +458,42 @@ void ClientHandler::handleGetResponseOrders(std::stringstream &)
 
 void ClientHandler::handleGetDailyMenu(std::stringstream &)
 {
-    std::string response = "FAILURE";
+    std::string response = "SUCCESS";
     try
     {
-        auto menuData = database->fetchRows("SELECT * FROM Menu_Item WHERE daily = true");
-        response = "SUCCESS," + std::to_string(menuData.size());
+        std::string query = "SELECT mi.* FROM Menu_Item mi "
+                            "INNER JOIN Daily_Menu dm ON mi.item_id = dm.item_id "
+                            "WHERE dm.menu_date = CURDATE()";
 
-        for (const auto &row : menuData)
+        std::vector<std::vector<std::string>> queryResult = database->fetchRows(query);
+
+        int rowCount = queryResult.size();
+        response += getDelimiterString() + std::to_string(rowCount);
+
+        for (std::vector<std::string> row : queryResult)
         {
-            for (const auto &col : row)
+            for (std::string col : row)
             {
                 response += getDelimiterString() + col;
+            }
+
+            std::vector<std::vector<std::string>> sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
+            int sentimentCount = sentiments.size();
+            response += getDelimiterString() + std::to_string(sentimentCount);
+            for (std::vector<std::string> sentiment : sentiments)
+            {
+                response += getDelimiterString() + sentiment[1];
+            }
+
+            std::vector<std::vector<std::string>> comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
+                                                                                 "FROM Comment c JOIN User u ON c.user_id = u.user_id "
+                                                                                 "WHERE c.item_id = " +
+                                                                                 row[0] + " ORDER BY Comment_date DESC");
+            int commentCount = comments.size();
+            response += getDelimiterString() + std::to_string(commentCount);
+            for (std::vector<std::string> comment : comments)
+            {
+                response += getDelimiterString() + comment[0] + getDelimiterString() + comment[1] + getDelimiterString() + comment[2];
             }
         }
     }
@@ -408,20 +501,35 @@ void ClientHandler::handleGetDailyMenu(std::stringstream &)
     {
         std::cout << e.what() << std::endl;
     }
-
     write(clientSocket, response.c_str(), response.size());
 }
 
 void ClientHandler::handleOrderFood(std::stringstream &receivedMessageStream)
 {
-    std::string userId, itemId;
+    std::string userId;
     std::getline(receivedMessageStream, userId, getDelimiterChar());
-    std::getline(receivedMessageStream, itemId, getDelimiterChar());
-
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO Orders(user_id, item_id, status) VALUES (" + userId + ", " + itemId + ", 'pending')");
+        std::string query = "INSERT INTO User_Order(user_id) VALUES(" + userId + ")";
+        database->executeQuery(query);
+
+        query = "SELECT order_id FROM User_Order WHERE user_id = " + userId + " ORDER BY order_id DESC LIMIT 1";
+        std::vector<std::vector<std::string>> orderId = database->fetchRows(query);
+        std::string currentOrderId = orderId[0][0];
+
+        query = "INSERT INTO Order_Item(order_id, item_id) VALUES";
+
+        std::string itemId;
+        std::getline(receivedMessageStream, itemId, getDelimiterChar());
+        query += "(" + currentOrderId + getDelimiterString() + itemId + ")";
+
+        while (std::getline(receivedMessageStream, itemId, getDelimiterChar()))
+        {
+            query += ",(" + currentOrderId + getDelimiterString() + itemId + ")";
+        }
+
+        database->executeQuery(query);
         response = "SUCCESS";
     }
     catch (const DatabaseException &e)
@@ -440,14 +548,21 @@ void ClientHandler::handleGetTodaysOrder(std::stringstream &receivedMessageStrea
     std::string response = "FAILURE";
     try
     {
-        auto orderData = database->fetchRows("SELECT * FROM Orders WHERE user_id = " + userId + " AND date = CURDATE()");
-        response = "SUCCESS," + std::to_string(orderData.size());
+        std::string query = "SELECT oi.item_id, mi.name "
+                            "FROM User_Order uo "
+                            "JOIN Order_Item oi ON uo.order_id = oi.order_id "
+                            "JOIN Menu_Item mi ON oi.item_id = mi.item_id "
+                            "WHERE uo.user_id = " +
+                            userId + " AND uo.order_date = CURDATE() - INTERVAL 1 DAY";
 
-        for (const auto &row : orderData)
+        std::vector<std::vector<std::string>> orders = database->fetchRows(query);
+
+        response = "SUCCESS";
+        for (const auto &order : orders)
         {
-            for (const auto &col : row)
+            for (const auto &item : order)
             {
-                response += getDelimiterString() + col;
+                response += getDelimiterString() + item;
             }
         }
     }
@@ -455,45 +570,100 @@ void ClientHandler::handleGetTodaysOrder(std::stringstream &receivedMessageStrea
     {
         std::cout << e.what() << std::endl;
     }
-
     write(clientSocket, response.c_str(), response.size());
 }
 
 void ClientHandler::handleLikeDislike(std::stringstream &receivedMessageStream)
 {
-    std::string userId, itemId, likeDislike;
-    std::getline(receivedMessageStream, userId, getDelimiterChar());
+    std::string itemId;
     std::getline(receivedMessageStream, itemId, getDelimiterChar());
-    std::getline(receivedMessageStream, likeDislike, getDelimiterChar());
+
+    std::string likeStatus;
+    std::getline(receivedMessageStream, likeStatus, getDelimiterChar());
 
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO Feedback(user_id, item_id, like_dislike) VALUES (" + userId + ", " + itemId + ", " + likeDislike + ")");
+        std::string query;
+        if (likeStatus == "like")
+        {
+            query = "UPDATE Menu_Item SET likes = likes + 1 WHERE item_id = " + itemId;
+        }
+        else
+        {
+            query = "UPDATE Menu_Item SET dislikes = dislikes + 1 WHERE item_id = " + itemId;
+        }
+
+        database->executeQuery(query);
+        updateRecommendRating(itemId);
+
         response = "SUCCESS";
     }
     catch (const DatabaseException &e)
     {
         std::cout << e.what() << std::endl;
     }
-
     write(clientSocket, response.c_str(), response.size());
 }
 
 void ClientHandler::handleGiveFeedback(std::stringstream &receivedMessageStream)
 {
-    std::string userId, itemId, feedback;
-    std::getline(receivedMessageStream, userId, getDelimiterChar());
+    std::string itemId;
     std::getline(receivedMessageStream, itemId, getDelimiterChar());
-    std::getline(receivedMessageStream, feedback, getDelimiterChar());
+
+    std::string userId;
+    std::getline(receivedMessageStream, userId, getDelimiterChar());
+
+    std::string comment;
+    std::getline(receivedMessageStream, comment, getDelimiterChar());
 
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO Feedback(user_id, item_id, feedback) VALUES (" + userId + ", " + itemId + ", '" + feedback + "')");
+        std::vector<std::string> postivieSentiments = analyzer->getPositiveSentiments(comment);
+        std::vector<std::string> negativeSentiments = analyzer->getNegativeSentiments(comment);
+
+        std::string query = "INSERT INTO Comment(user_id, item_id, comment) VALUES(" + userId + getDelimiterString() + itemId + ",'" + comment + "')";
+        database->executeQuery(query);
+
+        int positiveSentimentSize = postivieSentiments.size();
+        int negativeSentimentSize = negativeSentiments.size();
+        int totalSentimentSize = positiveSentimentSize + negativeSentimentSize;
+        if (totalSentimentSize > 0)
+        {
+            query = "INSERT INTO Menu_Item_Sentiment(item_id, sentiment, type) VALUES";
+            int i = 0;
+            int j = 0;
+
+            if (postivieSentiments.size() > 0)
+            {
+                query += "(" + itemId + ",'" + postivieSentiments[i++] + "getDelimiterChar()positive')";
+            }
+            else
+            {
+                query += "(" + itemId + ",'" + negativeSentiments[j++] + "getDelimiterChar()negative')";
+            }
+
+            for (; i < postivieSentiments.size(); i++)
+            {
+                query += ",(" + itemId + ",'" + postivieSentiments[i] + "getDelimiterChar()positive')";
+            }
+            for (; i < postivieSentiments.size(); i++)
+            {
+                query += ",(" + itemId + ",'" + negativeSentiments[j] + "getDelimiterChar()negative')";
+            }
+
+            updateRecommendRating(itemId);
+            database->executeQuery(query);
+        }
+
         response = "SUCCESS";
     }
     catch (const DatabaseException &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+    catch (const std::exception &e)
     {
         std::cout << e.what() << std::endl;
     }

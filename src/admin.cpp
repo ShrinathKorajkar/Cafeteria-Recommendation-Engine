@@ -84,7 +84,7 @@ bool Admin::deleteUser(const std::string &userId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::DELETE_USER) + userId;
+        std::string request = requestCodeToString(RequestCode::DELETE_USER) + getDelimiterString() + userId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -119,7 +119,6 @@ std::vector<User> Admin::getAllUsers() const
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             int rowCount;
-
             std::string tempToken;
             std::getline(responseStream, tempToken, getDelimiterChar());
             rowCount = std::stoi(tempToken);

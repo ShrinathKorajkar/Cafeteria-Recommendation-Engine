@@ -35,7 +35,7 @@ User User::deserialize(std::stringstream &dataStream)
 
     UserRole userRole = stringToUserRole(userRoleStr);
 
-    std::getline(dataStream, token);
+    std::getline(dataStream, token, getDelimiterChar());
     notificationNumber = std::stoi(token);
 
     return User(userId, userName, userPassword, userRole, notificationNumber);

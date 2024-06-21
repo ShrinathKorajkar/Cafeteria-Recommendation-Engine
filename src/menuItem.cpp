@@ -107,20 +107,20 @@ std::string MenuItem::serialize() const
                << foodCategoryToString(category) << getDelimiterChar()
                << (availability ? "1" : "0") << getDelimiterChar()
                << likes << getDelimiterChar()
-               << dislikes << getDelimiterChar();
+               << dislikes;
 
-    dataStream << sentiments.size() << getDelimiterChar();
+    dataStream << getDelimiterString() << sentiments.size();
     for (const auto &sentiment : sentiments)
     {
-        dataStream << sentiment << getDelimiterString();
+        dataStream << getDelimiterString() << sentiment;
     }
 
-    dataStream << comments.size() << getDelimiterChar();
+    dataStream << getDelimiterString() << comments.size();
     for (const auto &comment : comments)
     {
-        dataStream << comment.userName << getDelimiterChar()
-                   << comment.commentMessage << getDelimiterChar()
-                   << comment.commentDate << getDelimiterChar();
+        dataStream << getDelimiterChar() << comment.userName
+                   << getDelimiterChar() << comment.commentMessage
+                   << getDelimiterChar() << comment.commentDate;
     }
 
     return dataStream.str();
@@ -153,6 +153,9 @@ MenuItem MenuItem::deserialize(std::stringstream &dataStream)
 
     std::getline(dataStream, token, getDelimiterChar());
     int dislikes = std::stoi(token);
+
+    std::getline(dataStream, token, getDelimiterChar());
+    std::string rating = token;
 
     std::getline(dataStream, token, getDelimiterChar());
     int sentimentsCount = std::stoi(token);
