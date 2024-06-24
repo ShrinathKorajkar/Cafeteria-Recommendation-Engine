@@ -70,7 +70,6 @@ bool TCPSocketClient::disconnect()
 
 bool TCPSocketClient::send(const std::string &message)
 {
-    std::cout << "sending : " << message << std::endl;
     if (::send(clientSocket, message.c_str(), message.size(), 0) < 0)
     {
         throw NetworkConnectionException("Failed to send data to server");

@@ -20,7 +20,6 @@ void ClientHandler::start()
         buffer[bytesRead] = '\0';
         std::string request(buffer);
 
-        std::cout << "received : " << request << std::endl;
         handleRequest(request);
     }
     close(clientSocket);
@@ -110,7 +109,7 @@ void ClientHandler::handleAddUser(std::stringstream &receivedMessageStream)
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO User(name, password, role, notification_number) values('" + name + "getDelimiterChar()" + password + "getDelimiterChar()" + roleStr + "'," + notification_number + ")");
+        database->executeQuery("INSERT INTO User(name, password, role, notification_number) values('" + name + "', '" + password + "', '" + roleStr + "', " + notification_number + ")");
         auto queryResult = database->fetchRows("SELECT user_id FROM User WHERE name = '" + name + "'");
         std::string userIdCol = queryResult[0][0];
         response = "SUCCESS" + getDelimiterString() + userIdCol;
@@ -226,7 +225,7 @@ void ClientHandler::handleGetAllMenuItems(std::stringstream &)
     {
         std::string query = "SELECT * FROM Menu_Item ORDER BY recommend_rating DESC";
 
-        std::vector<std::vector<std::string>> queryResult = database->fetchRows(query);
+        auto queryResult = database->fetchRows(query);
 
         int rowCount = queryResult.size();
         response += getDelimiterString() + std::to_string(rowCount);
@@ -238,7 +237,7 @@ void ClientHandler::handleGetAllMenuItems(std::stringstream &)
                 response += getDelimiterString() + col;
             }
 
-            std::vector<std::vector<std::string>> sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
+            auto sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
             int sentimentCount = sentiments.size();
             response += getDelimiterString() + std::to_string(sentimentCount);
             for (std::vector<std::string> sentiment : sentiments)
@@ -246,10 +245,10 @@ void ClientHandler::handleGetAllMenuItems(std::stringstream &)
                 response += getDelimiterString() + sentiment[1];
             }
 
-            std::vector<std::vector<std::string>> comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
-                                                                                 "FROM Comment c JOIN User u ON c.user_id = u.user_id "
-                                                                                 "WHERE c.item_id = " +
-                                                                                 row[0] + " ORDER BY Comment_date DESC");
+            auto comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
+                                                "FROM Comment c JOIN User u ON c.user_id = u.user_id "
+                                                "WHERE c.item_id = " +
+                                                row[0] + " ORDER BY Comment_date DESC");
             int commentCount = comments.size();
             response += getDelimiterString() + std::to_string(commentCount);
             for (std::vector<std::string> comment : comments)
@@ -273,7 +272,7 @@ void ClientHandler::handleGetRecommendedMenu(std::stringstream &receivedMessageS
     {
         std::string query = "SELECT * FROM Menu_Item WHERE availability = true ORDER BY category, recommend_rating DESC";
 
-        std::vector<std::vector<std::string>> queryResult = database->fetchRows(query);
+        auto queryResult = database->fetchRows(query);
 
         int rowCount = queryResult.size();
         response += getDelimiterString() + std::to_string(rowCount);
@@ -285,7 +284,7 @@ void ClientHandler::handleGetRecommendedMenu(std::stringstream &receivedMessageS
                 response += getDelimiterString() + col;
             }
 
-            std::vector<std::vector<std::string>> sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
+            auto sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
             int sentimentCount = sentiments.size();
             response += getDelimiterString() + std::to_string(sentimentCount);
             for (std::vector<std::string> sentiment : sentiments)
@@ -293,10 +292,10 @@ void ClientHandler::handleGetRecommendedMenu(std::stringstream &receivedMessageS
                 response += getDelimiterString() + sentiment[1];
             }
 
-            std::vector<std::vector<std::string>> comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
-                                                                                 "FROM Comment c JOIN User u ON c.user_id = u.user_id "
-                                                                                 "WHERE c.item_id = " +
-                                                                                 row[0] + " ORDER BY Comment_date DESC");
+            auto comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
+                                                "FROM Comment c JOIN User u ON c.user_id = u.user_id "
+                                                "WHERE c.item_id = " +
+                                                row[0] + " ORDER BY Comment_date DESC");
             int commentCount = comments.size();
             response += getDelimiterString() + std::to_string(commentCount);
             for (std::vector<std::string> comment : comments)
@@ -324,9 +323,9 @@ void ClientHandler::handleGetPendingNotifications(std::stringstream &receivedMes
     std::string response = "FAILURE";
     try
     {
-        std::vector<std::vector<std::string>> queryResult = database->fetchRows("SELECT message, notification_id FROM Notification "
-                                                                                "WHERE notification_date = CURDATE() AND notification_id > " +
-                                                                                notificationNumber + " ORDER BY notification_id ASC");
+        auto queryResult = database->fetchRows("SELECT message, notification_id FROM Notification "
+                                               "WHERE notification_date = CURDATE() AND notification_id > " +
+                                               notificationNumber + " ORDER BY notification_id ASC");
 
         int rowCount = queryResult.size();
         if (rowCount > 0)
@@ -334,7 +333,7 @@ void ClientHandler::handleGetPendingNotifications(std::stringstream &receivedMes
             std::string maxNotificationNumber = queryResult[queryResult.size() - 1][1];
             database->executeQuery("UPDATE User SET notification_number = " + maxNotificationNumber + " WHERE user_id = " + userId);
 
-            response = "SUCCESS," + maxNotificationNumber;
+            response = "SUCCESS" + getDelimiterString() + maxNotificationNumber;
             for (std::vector<std::string> row : queryResult)
             {
                 response += getDelimiterString() + row[0];
@@ -349,7 +348,7 @@ void ClientHandler::handleGetPendingNotifications(std::stringstream &receivedMes
     write(clientSocket, response.c_str(), response.size());
 }
 
-void ClientHandler::handleRollOutDailyMenu(std::stringstream &)
+void ClientHandler::handleRollOutDailyMenu(std::stringstream &receivedMessageStream)
 {
     std::string menuSizeStr;
     std::getline(receivedMessageStream, menuSizeStr, getDelimiterChar());
@@ -382,7 +381,7 @@ void ClientHandler::handleRollOutDailyMenu(std::stringstream &)
     write(clientSocket, response.c_str(), response.size());
 }
 
-void ClientHandler::handleGenerateReport(std::stringstream &)
+void ClientHandler::handleGenerateReport(std::stringstream &receivedMessageStream)
 {
     std::string month;
     std::string year;
@@ -402,7 +401,7 @@ void ClientHandler::handleGenerateReport(std::stringstream &)
                             " GROUP BY mi.item_id, mi.name, mi.category "
                             "ORDER BY total_orders DESC";
 
-        std::vector<std::vector<std::string>> report = database->fetchRows(query);
+        auto report = database->fetchRows(query);
         response = "SUCCESS";
 
         for (const auto &reportRow : report)
@@ -433,7 +432,7 @@ void ClientHandler::handleGetResponseOrders(std::stringstream &)
                             "WHERE uo.order_date = CURDATE() "
                             "GROUP BY mi.name ORDER BY orderCount DESC";
 
-        std::vector<std::vector<std::string>> orders = database->fetchRows(query);
+        auto orders = database->fetchRows(query);
 
         if (orders.size() != 0)
         {
@@ -465,7 +464,7 @@ void ClientHandler::handleGetDailyMenu(std::stringstream &)
                             "INNER JOIN Daily_Menu dm ON mi.item_id = dm.item_id "
                             "WHERE dm.menu_date = CURDATE()";
 
-        std::vector<std::vector<std::string>> queryResult = database->fetchRows(query);
+        auto queryResult = database->fetchRows(query);
 
         int rowCount = queryResult.size();
         response += getDelimiterString() + std::to_string(rowCount);
@@ -477,7 +476,7 @@ void ClientHandler::handleGetDailyMenu(std::stringstream &)
                 response += getDelimiterString() + col;
             }
 
-            std::vector<std::vector<std::string>> sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
+            auto sentiments = database->fetchRows("SELECT * FROM Menu_Item_Sentiment WHERE item_id = " + row[0]);
             int sentimentCount = sentiments.size();
             response += getDelimiterString() + std::to_string(sentimentCount);
             for (std::vector<std::string> sentiment : sentiments)
@@ -485,10 +484,10 @@ void ClientHandler::handleGetDailyMenu(std::stringstream &)
                 response += getDelimiterString() + sentiment[1];
             }
 
-            std::vector<std::vector<std::string>> comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
-                                                                                 "FROM Comment c JOIN User u ON c.user_id = u.user_id "
-                                                                                 "WHERE c.item_id = " +
-                                                                                 row[0] + " ORDER BY Comment_date DESC");
+            auto comments = database->fetchRows("SELECT u.name, c.comment, c.comment_date "
+                                                "FROM Comment c JOIN User u ON c.user_id = u.user_id "
+                                                "WHERE c.item_id = " +
+                                                row[0] + " ORDER BY Comment_date DESC");
             int commentCount = comments.size();
             response += getDelimiterString() + std::to_string(commentCount);
             for (std::vector<std::string> comment : comments)
@@ -515,18 +514,18 @@ void ClientHandler::handleOrderFood(std::stringstream &receivedMessageStream)
         database->executeQuery(query);
 
         query = "SELECT order_id FROM User_Order WHERE user_id = " + userId + " ORDER BY order_id DESC LIMIT 1";
-        std::vector<std::vector<std::string>> orderId = database->fetchRows(query);
+        auto orderId = database->fetchRows(query);
         std::string currentOrderId = orderId[0][0];
 
         query = "INSERT INTO Order_Item(order_id, item_id) VALUES";
 
         std::string itemId;
         std::getline(receivedMessageStream, itemId, getDelimiterChar());
-        query += "(" + currentOrderId + getDelimiterString() + itemId + ")";
+        query += "(" + currentOrderId + ", " + itemId + ")";
 
         while (std::getline(receivedMessageStream, itemId, getDelimiterChar()))
         {
-            query += ",(" + currentOrderId + getDelimiterString() + itemId + ")";
+            query += ",(" + currentOrderId + ", " + itemId + ")";
         }
 
         database->executeQuery(query);
@@ -555,7 +554,7 @@ void ClientHandler::handleGetTodaysOrder(std::stringstream &receivedMessageStrea
                             "WHERE uo.user_id = " +
                             userId + " AND uo.order_date = CURDATE() - INTERVAL 1 DAY";
 
-        std::vector<std::vector<std::string>> orders = database->fetchRows(query);
+        auto orders = database->fetchRows(query);
 
         response = "SUCCESS";
         for (const auto &order : orders)
@@ -669,4 +668,52 @@ void ClientHandler::handleGiveFeedback(std::stringstream &receivedMessageStream)
     }
 
     write(clientSocket, response.c_str(), response.size());
+}
+
+bool ClientHandler::updateRecommendRating(const std::string &itemId)
+{
+    int likes = 0;
+    int dislikes = 0;
+    int positiveSentiments = 0;
+    int negativeSentiments = 0;
+    int commentCount = 0;
+    double likesWeight = 0.4, sentimentWeight = 0.4, commentWeight = 0.2;
+
+    std::vector<std::vector<std::string>> resultSet;
+    std::string query;
+
+    query = "SELECT IFNULL(likes, 0), IFNULL(dislikes, 0) FROM Menu_Item WHERE item_id = " + itemId + "";
+    resultSet = database->fetchRows(query);
+    likes = std::stoi(resultSet[0][0]);
+    dislikes = std::stoi(resultSet[0][1]);
+
+    query = "SELECT IFNULL(COUNT(*), 0) FROM Menu_Item_Sentiment WHERE item_id = " + itemId + " AND type = 'positive'";
+    resultSet = database->fetchRows(query);
+    positiveSentiments = std::stoi(resultSet[0][0]);
+
+    query = "SELECT IFNULL(COUNT(*), 0) FROM Menu_Item_Sentiment WHERE item_id = " + itemId + " AND type = 'negative'";
+    resultSet = database->fetchRows(query);
+    negativeSentiments = std::stoi(resultSet[0][0]);
+
+    query = "SELECT IFNULL(COUNT(*), 0) FROM Comment WHERE item_id = " + itemId + "";
+    resultSet = database->fetchRows(query);
+    commentCount = std::stoi(resultSet[0][0]);
+
+    double newRating = likesWeight * (likes - dislikes) + sentimentWeight * (positiveSentiments - negativeSentiments) + commentWeight * commentCount;
+
+    query = "UPDATE Menu_Item SET recommend_rating = " + std::to_string(newRating) + " WHERE item_id = " + itemId;
+    database->executeQuery(query);
+
+    return true;
+}
+
+std::string ClientHandler::getCurrentDate()
+{
+    time_t t = time(0);
+    tm *currentDateTime = localtime(&t);
+
+    char buffer[11];
+    strftime(buffer, sizeof(buffer), "%d/%m/%Y", currentDateTime);
+
+    return std::string(buffer);
 }

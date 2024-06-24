@@ -93,39 +93,3 @@ void TCPSocketServer::handleClient(int clientSocket)
     ClientHandler handler(database, analyzer, clientSocket);
     handler.start();
 }
-bool TCPSocketServer::updateRecommendRating(const std::string &itemId)
-{
-    int likes = 0;
-    int dislikes = 0;
-    int positiveSentiments = 0;
-    int negativeSentiments = 0;
-    int commentCount = 0;
-    double likesWeight = 0.4, sentimentWeight = 0.4, commentWeight = 0.2;
-
-    std::vector<std::vector<std::string>> resultSet;
-    std::string query;
-
-    query = "SELECT IFNULL(likes, 0), IFNULL(dislikes, 0) FROM Menu_Item WHERE item_id = " + itemId + "";
-    resultSet = database->fetchRows(query);
-    likes = std::stoi(resultSet[0][0]);
-    dislikes = std::stoi(resultSet[0][1]);
-
-    query = "SELECT IFNULL(COUNT(*), 0) FROM Menu_Item_Sentiment WHERE item_id = " + itemId + " AND type = 'positive'";
-    resultSet = database->fetchRows(query);
-    positiveSentiments = std::stoi(resultSet[0][0]);
-
-    query = "SELECT IFNULL(COUNT(*), 0) FROM Menu_Item_Sentiment WHERE item_id = " + itemId + " AND type = 'negative'";
-    resultSet = database->fetchRows(query);
-    negativeSentiments = std::stoi(resultSet[0][0]);
-
-    query = "SELECT IFNULL(COUNT(*), 0) FROM Comment WHERE item_id = " + itemId + "";
-    resultSet = database->fetchRows(query);
-    commentCount = std::stoi(resultSet[0][0]);
-
-    double newRating = likesWeight * (likes - dislikes) + sentimentWeight * (positiveSentiments - negativeSentiments) + commentWeight * commentCount;
-
-    query = "UPDATE Menu_Item SET recommend_rating = " + std::to_string(newRating) + " WHERE item_id = " + itemId;
-    database->executeQuery(query);
-
-    return true;
-}

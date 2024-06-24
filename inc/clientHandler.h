@@ -37,7 +37,7 @@ private:
     void handleGetAllMenuItems(std::stringstream &);
     void handleGetRecommendedMenu(std::stringstream &receivedMessageStream);
     void handleGetPendingNotifications(std::stringstream &receivedMessageStream);
-    void handleRollOutDailyMenu(std::stringstream &);
+    void handleRollOutDailyMenu(std::stringstream &receivedMessageStream);
     void handleGenerateReport(std::stringstream &);
     void handleGetResponseOrders(std::stringstream &);
     void handleGetDailyMenu(std::stringstream &);
@@ -45,4 +45,7 @@ private:
     void handleGetTodaysOrder(std::stringstream &receivedMessageStream);
     void handleLikeDislike(std::stringstream &receivedMessageStream);
     void handleGiveFeedback(std::stringstream &receivedMessageStream);
+
+    bool updateRecommendRating(const std::string &itemId);
+    std::string getCurrentDate();
 };

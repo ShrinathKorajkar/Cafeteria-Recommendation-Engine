@@ -20,14 +20,3 @@ void startServer()
         std::cerr << "Server error: " << e.what() << std::endl;
     }
 }
-
-std::string getCurrentDate()
-{
-    time_t t = time(0);
-    tm *currentDateTime = localtime(&t);
-
-    char buffer[11];
-    strftime(buffer, sizeof(buffer), "%d/%m/%Y", currentDateTime);
-
-    return std::string(buffer);
-}
