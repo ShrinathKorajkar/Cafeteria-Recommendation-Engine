@@ -136,3 +136,53 @@ bool Employee::provideFeedback(const std::string &itemId, const std::string &com
         throw BadActionException("Error giving feedback: " + std::string(e.what()));
     }
 }
+
+std::vector<ImprovementItem> Employee::getItemsToImprove() const
+{
+    try
+    {
+        std::string request = requestCodeToString(RequestCode::GET_IMPROVEMENT_ITEMS);
+        connection->send(request);
+
+        std::string response = connection->receive();
+        std::stringstream responseStream(response);
+        std::vector<ImprovementItem> items;
+
+        std::string responseStatus;
+        std::getline(responseStream, responseStatus, getDelimiterChar());
+
+        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
+        {
+            std::string itemId;
+            std::string name;
+            while (std::getline(responseStream, itemId, getDelimiterChar()))
+            {
+                std::getline(responseStream, name, getDelimiterChar());
+                items.emplace_back(itemId, name);
+            }
+        }
+
+        return items;
+    }
+    catch (const std::exception &e)
+    {
+        throw BadActionException("Error getting Order: " + std::string(e.what()));
+    }
+}
+
+bool Employee::giveImprovementFeedback(const std::string &itemId, const std::string &comment) const
+{
+    try
+    {
+        std::string request = requestCodeToString(RequestCode::GIVE_IMPROVEMENT_FEEDBACK) + getDelimiterString() +
+                              itemId + getDelimiterString() + getId() + getDelimiterString() + comment;
+        connection->send(request);
+
+        std::string responseStatus = connection->receive();
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
+    }
+    catch (const std::exception &e)
+    {
+        throw BadActionException("Error giving feedback: " + std::string(e.what()));
+    }
+}

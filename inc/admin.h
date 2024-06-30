@@ -18,4 +18,7 @@ public:
     std::string addUser(const User &user);
     bool deleteUser(const std::string &userId);
     std::vector<User> getAllUsers() const;
+    std::vector<MenuItem> getDiscardedMenuItems() const;
+    bool requestFeedbackForDiscardedItem(const std::string &itemId);
+    std::vector<ImprovementFeedback> getDiscardedItemsFeedback() const;
 };

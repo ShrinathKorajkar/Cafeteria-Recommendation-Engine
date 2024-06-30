@@ -17,6 +17,7 @@ private:
   int dislikes;
   std::vector<std::string> sentiments;
   std::vector<Comment> comments;
+  double rating;
 
 public:
   MenuItem(const std::string &id, const std::string &name, double price, const std::string &description,
@@ -24,7 +25,7 @@ public:
 
   MenuItem(const std::string &id, const std::string &name, double price, const std::string &description,
            FoodCategory category, bool availability, int likes, int dislikes,
-           const std::vector<std::string> &sentiments, const std::vector<Comment> &comments);
+           const std::vector<std::string> &sentiments, const std::vector<Comment> &comments, const double rating);
 
   std::string getItemId() const;
   std::string getName() const;
@@ -36,6 +37,7 @@ public:
   int getDislikes() const;
   std::vector<std::string> getSentiments() const;
   std::vector<Comment> getComments() const;
+  double getRating() const;
 
   bool like();
   bool dislike();

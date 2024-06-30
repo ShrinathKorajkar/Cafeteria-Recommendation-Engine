@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 enum class UserRole
@@ -49,7 +50,12 @@ enum class RequestCode
     GET_TODAYS_ORDER,
     LIKE_DISLIKE,
     GIVE_FEEDBACK,
-    CLOSE_CONNECTION
+    CLOSE_CONNECTION,
+    GET_DISCARDED_MENU_ITEMS,
+    REQUEST_DISCARDED_ITEM_FEEDBACK,
+    GET_IMPROVEMENT_ITEMS,
+    GIVE_IMPROVEMENT_FEEDBACK,
+    GET_IMPROVEMENT_FEEDBACKS
 };
 
 struct Comment
@@ -57,6 +63,10 @@ struct Comment
     std::string userName;
     std::string commentMessage;
     std::string commentDate;
+
+    Comment() = default;
+    Comment(const std::string &userName, const std::string &commentMessage, const std::string &commentDate)
+        : userName(userName), commentMessage(commentMessage), commentDate(commentDate) {}
 };
 
 struct OrderItem
@@ -65,6 +75,22 @@ struct OrderItem
     std::string menuItemName;
 
     OrderItem(const std::string &id, const std::string &name) : menuItemId(id), menuItemName(name) {}
+};
+
+struct ImprovementItem
+{
+    std::string menuItemId;
+    std::string menuItemName;
+
+    ImprovementItem(const std::string &id, const std::string &name) : menuItemId(id), menuItemName(name) {}
+};
+
+struct ImprovementFeedback
+{
+    std::string menuItemName;
+    std::vector<Comment> comments;
+
+    ImprovementFeedback(const std::string &name, const std::vector<Comment> &comments) : menuItemName(name), comments(comments) {}
 };
 
 struct OrderResponse

@@ -18,4 +18,9 @@ public:
     std::vector<OrderResponse> getOrderResponses() const;
     std::vector<MenuItem> getRecommendedMenu() const;
     std::string generateReport(const int &month, const int &year) const;
+
+    bool deleteMenuItem(const std::string &itemId);
+    std::vector<MenuItem> getDiscardedMenuItems() const;
+    bool requestFeedbackForDiscardedItem(const std::string &itemId);
+    std::vector<ImprovementFeedback> getDiscardedItemsFeedback() const;
 };

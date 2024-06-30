@@ -341,6 +341,96 @@ void viewAllMenuItemsAdmin(Admin *admin)
     }
 }
 
+void viewDiscardedMenuItemsAdmin(Admin *admin)
+{
+    std::vector<MenuItem> menuItems = admin->getDiscardedMenuItems();
+    if (menuItems.size() == 0)
+    {
+        std::cout << "No New Discarded Menu Items This month. Check Next Month" << std::endl;
+        return;
+    }
+
+    std::cin.ignore();
+    std::cout << "\nList of All Discarded Menu Items" << std::endl;
+    for (const MenuItem &menuItem : menuItems)
+    {
+        std::cout << "\nName  : " << menuItem.getName()
+                  << "\nCategory : " << foodCategoryToString(menuItem.getCategory())
+                  << "\nLikes : " << menuItem.getLikes()
+                  << "\nDislikes : " << menuItem.getDislikes()
+                  << "\nRating : " << menuItem.getRating()
+                  << "\nSentiments : ";
+
+        std::vector<std::string> sentiments = menuItem.getSentiments();
+        if (sentiments.size() == 0)
+        {
+            std::cout << "No Sentiments Available  ";
+        }
+
+        for (const std::string &sentiment : sentiments)
+        {
+            std::cout << sentiment << ", ";
+        }
+        std::cout << "\b\b" << std::endl;
+
+        while (true)
+        {
+            std::string choice;
+
+            std::cout << "\nPress D to Delete Item from Menu"
+                      << "\nPress F to get feedback from Users"
+                      << "\nPress N to goto next Item or back" << std::endl;
+            std::cout << "Enter your choice : ";
+            std::getline(std::cin, choice);
+
+            if (choice == "N")
+            {
+                break;
+            }
+            else if (choice == "F")
+            {
+                admin->requestFeedbackForDiscardedItem(menuItem.getItemId());
+                std::cout << "Requested for User Feedback" << std::endl;
+                break;
+            }
+            else if (choice == "D")
+            {
+                bool result = admin->deleteMenuItem(menuItem.getItemId());
+                if (result)
+                {
+                    std::cout << "\nMenu Item Deleted Successfully" << std::endl;
+                }
+                else
+                {
+                    std::cout << "\nMenu Item Not Found" << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "Invalid choice. Try Again" << std::endl;
+            }
+        }
+    }
+}
+
+void viewDiscardedItemsFeedbacksAdmin(Admin *admin)
+{
+    std::vector<ImprovementFeedback> feedbacks = admin->getDiscardedItemsFeedback();
+    if (feedbacks.size() == 0)
+    {
+        std::cout << "There is no menu item for which improvement feedback was requested" << std::endl;
+        return;
+    }
+
+    std::cout << "Feedbacks on Items for Improvement" << std::endl;
+
+    for (auto &feedback : feedbacks)
+    {
+        std::cout << "\nItem Name : " << feedback.menuItemName << std::endl;
+        showComments(feedback.comments);
+    }
+}
+
 void showAdminMenu(std::unique_ptr<User> &user)
 {
     Admin *admin = dynamic_cast<Admin *>(user.get());
@@ -358,14 +448,16 @@ void showAdminMenu(std::unique_ptr<User> &user)
         std::cout << "4. Delete menu item" << std::endl;
         std::cout << "5. View all users" << std::endl;
         std::cout << "6. View all menu items" << std::endl;
-        std::cout << "7. Log out" << std::endl;
+        std::cout << "7. View Discarded List" << std::endl;
+        std::cout << "8. View Discarded Items Feedback" << std::endl;
+        std::cout << "9. Log out" << std::endl;
 
         while (true)
         {
             std::cout << "\nEnter your choice: ";
             std::cin >> choice;
 
-            if (std::cin.fail() || choice > 7 || choice < 1)
+            if (std::cin.fail() || choice > 9 || choice < 1)
             {
                 clearInputStream();
                 std::cerr << "Invalid input. Please enter a valid number." << std::endl;
@@ -397,6 +489,12 @@ void showAdminMenu(std::unique_ptr<User> &user)
             viewAllMenuItemsAdmin(admin);
             break;
         case 7:
+            viewDiscardedMenuItemsAdmin(admin);
+            break;
+        case 8:
+            viewDiscardedItemsFeedbacksAdmin(admin);
+            break;
+        case 9:
             return;
         }
     }
@@ -688,6 +786,96 @@ void generateReport(Chef *chef)
     waitForUser2();
 }
 
+void viewDiscardedMenuItemsChef(Chef *chef)
+{
+    std::vector<MenuItem> menuItems = chef->getDiscardedMenuItems();
+    if (menuItems.size() == 0)
+    {
+        std::cout << "No New Discarded Menu Items This month. Check Next Month" << std::endl;
+        return;
+    }
+
+    std::cin.ignore();
+    std::cout << "\nList of All Discarded Menu Items" << std::endl;
+    for (const MenuItem &menuItem : menuItems)
+    {
+        std::cout << "\nName  : " << menuItem.getName()
+                  << "\nCategory : " << foodCategoryToString(menuItem.getCategory())
+                  << "\nLikes : " << menuItem.getLikes()
+                  << "\nDislikes : " << menuItem.getDislikes()
+                  << "\nRating : " << menuItem.getRating()
+                  << "\nSentiments : ";
+
+        std::vector<std::string> sentiments = menuItem.getSentiments();
+        if (sentiments.size() == 0)
+        {
+            std::cout << "No Sentiments Available  ";
+        }
+
+        for (const std::string &sentiment : sentiments)
+        {
+            std::cout << sentiment << ", ";
+        }
+        std::cout << "\b\b" << std::endl;
+
+        while (true)
+        {
+            std::string choice;
+
+            std::cout << "\nPress D to Delete Item from Menu"
+                      << "\nPress F to get feedback from Users"
+                      << "\nPress N to goto next Item or back" << std::endl;
+            std::cout << "Enter your choice : ";
+            std::getline(std::cin, choice);
+
+            if (choice == "N")
+            {
+                break;
+            }
+            else if (choice == "F")
+            {
+                chef->requestFeedbackForDiscardedItem(menuItem.getItemId());
+                std::cout << "Requested for User Feedback" << std::endl;
+                break;
+            }
+            else if (choice == "D")
+            {
+                bool result = chef->deleteMenuItem(menuItem.getItemId());
+                if (result)
+                {
+                    std::cout << "\nMenu Item Deleted Successfully" << std::endl;
+                }
+                else
+                {
+                    std::cout << "\nMenu Item Not Found" << std::endl;
+                }
+            }
+            else
+            {
+                std::cout << "Invalid choice. Try Again" << std::endl;
+            }
+        }
+    }
+}
+
+void viewDiscardedItemsFeedbacksChef(Chef *chef)
+{
+    std::vector<ImprovementFeedback> feedbacks = chef->getDiscardedItemsFeedback();
+    if (feedbacks.size() == 0)
+    {
+        std::cout << "There is no menu item for which improvement feedback was requested" << std::endl;
+        return;
+    }
+
+    std::cout << "Feedbacks on Items for Improvement" << std::endl;
+
+    for (auto &feedback : feedbacks)
+    {
+        std::cout << "\nItem Name : " << feedback.menuItemName << std::endl;
+        showComments(feedback.comments);
+    }
+}
+
 void showChefMenu(std::unique_ptr<User> &user)
 {
     Chef *chef = dynamic_cast<Chef *>(user.get());
@@ -705,14 +893,16 @@ void showChefMenu(std::unique_ptr<User> &user)
         std::cout << "3. Roll out tomorrow's menu" << std::endl;
         std::cout << "4. View tomorrow's order response" << std::endl;
         std::cout << "5. Generate report" << std::endl;
-        std::cout << "6. Log out" << std::endl;
+        std::cout << "6. View Discarded Menu Items" << std::endl;
+        std::cout << "7. view Discarded Items Feedbacks" << std::endl;
+        std::cout << "8. Log out" << std::endl;
 
         while (true)
         {
             std::cout << "\nEnter your choice: ";
             std::cin >> choice;
 
-            if (std::cin.fail() || choice > 6 || choice < 1)
+            if (std::cin.fail() || choice > 8 || choice < 1)
             {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -742,6 +932,12 @@ void showChefMenu(std::unique_ptr<User> &user)
             generateReport(chef);
             break;
         case 6:
+            viewDiscardedMenuItemsChef(chef);
+            break;
+        case 7:
+            viewDiscardedItemsFeedbacksChef(chef);
+            break;
+        case 8:
             return;
         }
     }
@@ -948,6 +1144,43 @@ void giveFeedbackEmployee(Employee *employee)
     waitForUser2();
 }
 
+void giveImprovmentFeedback(Employee *employee)
+{
+    std::vector<ImprovementItem> items = employee->getItemsToImprove();
+    if (items.empty())
+    {
+        std::cout << "There is no requested feedback for any Item yet" << std::endl;
+        waitForUser();
+        return;
+    }
+
+    std::cout << "Items which need Improvement Kindly share : "
+              << "\n1. What didn't you like about food Item"
+              << "\n2. How would you like it to taste"
+              << "\n3. Share your mom's recipe or any other improvement comments" << std::endl;
+
+    std::cin.ignore();
+    for (const ImprovementItem &item : items)
+    {
+        std::string feedback;
+        std::cout << "\nEnter your feedback for - " << item.menuItemName << " : ";
+        std::getline(std::cin, feedback);
+
+        bool result = employee->giveImprovementFeedback(item.menuItemId, feedback);
+        if (result)
+        {
+            std::cout << "Feedback added successfully." << std::endl;
+        }
+        else
+        {
+            std::cout << "Failed to add feedback." << std::endl;
+        }
+        break;
+    }
+
+    waitForUser2();
+}
+
 void showEmployeeMenu(std::unique_ptr<User> &user)
 {
     Employee *employee = dynamic_cast<Employee *>(user.get());
@@ -964,14 +1197,15 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
         std::cout << "2. View all menu items" << std::endl;
         std::cout << "3. Place Tomorrow's order" << std::endl;
         std::cout << "4. Give Feedback for Today's Order" << std::endl;
-        std::cout << "5. Log out" << std::endl;
+        std::cout << "5. Give Improvement Feedback" << std::endl;
+        std::cout << "6. Log out" << std::endl;
 
         while (true)
         {
             std::cout << "\nEnter your choice: ";
             std::cin >> choice;
 
-            if (std::cin.fail() || choice > 5 || choice < 1)
+            if (std::cin.fail() || choice > 6 || choice < 1)
             {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -998,6 +1232,9 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
             giveFeedbackEmployee(employee);
             break;
         case 5:
+            giveImprovmentFeedback(employee);
+            break;
+        case 6:
             return;
         }
     }

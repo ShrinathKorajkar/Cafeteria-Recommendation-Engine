@@ -19,4 +19,6 @@ public:
     std::vector<OrderItem> getTodaysOrder() const;
     bool likeOrDislikeItem(const std::string &itemId, const LikeStatus &likeStatus);
     bool provideFeedback(const std::string &itemId, const std::string &comment) const;
+    std::vector<ImprovementItem> getItemsToImprove() const;
+    bool giveImprovementFeedback(const std::string &itemId, const std::string &comment) const;
 };

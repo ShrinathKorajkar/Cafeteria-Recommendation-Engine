@@ -127,7 +127,13 @@ std::string requestCodeToString(RequestCode code)
         {RequestCode::GET_TODAYS_ORDER, "GET_TODAYS_ORDER"},
         {RequestCode::LIKE_DISLIKE, "LIKE_DISLIKE"},
         {RequestCode::GIVE_FEEDBACK, "GIVE_FEEDBACK"},
-        {RequestCode::CLOSE_CONNECTION, "CLOSE_CONNECTION"}};
+        {RequestCode::CLOSE_CONNECTION, "CLOSE_CONNECTION"},
+        {RequestCode::GET_DISCARDED_MENU_ITEMS, "GET_DISCARDED_MENU_ITEMS"},
+        {RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK, "REQUEST_DISCARDED_ITEM_FEEDBACK"},
+        {RequestCode::GET_IMPROVEMENT_ITEMS, "GET_IMPROVEMENT_ITEMS"},
+        {RequestCode::GIVE_IMPROVEMENT_FEEDBACK, "GIVE_IMPROVEMENT_FEEDBACK"},
+        {RequestCode::GET_IMPROVEMENT_FEEDBACKS, "GET_IMPROVEMENT_FEEDBACKS"},
+    };
 
     auto it = codeToString.find(code);
     if (it != codeToString.end())
@@ -160,7 +166,13 @@ RequestCode stringToRequestCode(const std::string &str)
         {"GET_TODAYS_ORDER", RequestCode::GET_TODAYS_ORDER},
         {"LIKE_DISLIKE", RequestCode::LIKE_DISLIKE},
         {"GIVE_FEEDBACK", RequestCode::GIVE_FEEDBACK},
-        {"CLOSE_CONNECTION", RequestCode::CLOSE_CONNECTION}};
+        {"CLOSE_CONNECTION", RequestCode::CLOSE_CONNECTION},
+        {"GET_DISCARDED_MENU_ITEMS", RequestCode::GET_DISCARDED_MENU_ITEMS},
+        {"REQUEST_DISCARDED_ITEM_FEEDBACK", RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK},
+        {"GET_IMPROVEMENT_ITEMS", RequestCode::GET_IMPROVEMENT_ITEMS},
+        {"GIVE_IMPROVEMENT_FEEDBACK", RequestCode::GIVE_IMPROVEMENT_FEEDBACK},
+        {"GET_IMPROVEMENT_FEEDBACKS", RequestCode::GET_IMPROVEMENT_FEEDBACKS},
+    };
 
     auto it = stringToCode.find(str);
     if (it != stringToCode.end())

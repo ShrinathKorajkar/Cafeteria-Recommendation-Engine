@@ -12,10 +12,10 @@ MenuItem::MenuItem(const std::string &id, const std::string &name, double price,
 
 MenuItem::MenuItem(const std::string &id, const std::string &name, double price, const std::string &description,
                    FoodCategory category, bool availability, int likes, int dislikes,
-                   const std::vector<std::string> &sentiments, const std::vector<Comment> &comments)
+                   const std::vector<std::string> &sentiments, const std::vector<Comment> &comments, const double rating)
     : itemId(id), name(name), price(price), description(description),
       category(category), availability(availability), likes(likes), dislikes(dislikes),
-      sentiments(sentiments), comments(comments)
+      sentiments(sentiments), comments(comments), rating(rating)
 {
 }
 
@@ -67,6 +67,11 @@ std::vector<Comment> MenuItem::getComments() const
 std::vector<std::string> MenuItem::getSentiments() const
 {
     return sentiments;
+}
+
+double MenuItem::getRating() const
+{
+    return rating;
 }
 
 bool MenuItem::like()
@@ -155,7 +160,8 @@ MenuItem MenuItem::deserialize(std::stringstream &dataStream)
     int dislikes = std::stoi(token);
 
     std::getline(dataStream, token, getDelimiterChar());
-    std::string rating = token;
+    std::string ratingStr = token;
+    double rating = std::stod(ratingStr);
 
     std::getline(dataStream, token, getDelimiterChar());
     int sentimentsCount = std::stoi(token);
@@ -181,7 +187,7 @@ MenuItem MenuItem::deserialize(std::stringstream &dataStream)
         comments.push_back(comment);
     }
 
-    return MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments);
+    return MenuItem(itemId, name, price, description, category, availability, likes, dislikes, sentiments, comments, rating);
 }
 
 std::vector<MenuItem> MenuItem::getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category)

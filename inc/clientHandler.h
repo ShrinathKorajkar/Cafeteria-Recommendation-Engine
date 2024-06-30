@@ -45,6 +45,11 @@ private:
     void handleGetTodaysOrder(std::stringstream &receivedMessageStream);
     void handleLikeDislike(std::stringstream &receivedMessageStream);
     void handleGiveFeedback(std::stringstream &receivedMessageStream);
+    void handleGetDiscardedMenuItems(std::stringstream &receivedMessageStream);
+    void handleRequestDiscardedItemFeedback(std::stringstream &receivedMessageStream);
+    void handleGetImprovementItems(std::stringstream &receivedMessageStream);
+    void handleGiveImprovmentFeedback(std::stringstream &receivedMessageStream);
+    void handleGetImprovmentFeedback(std::stringstream &receivedMessageStream);
 
     bool updateRecommendRating(const std::string &itemId);
     std::string getCurrentDate();
