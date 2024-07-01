@@ -58,6 +58,39 @@ enum class RequestCode
     GET_IMPROVEMENT_FEEDBACKS
 };
 
+enum class SpiceLevel
+{
+    LOW,
+    MEDIUM,
+    HIGH
+};
+
+enum class DietCategory
+{
+    VEGETARIAN,
+    NON_VEGETARIAN,
+    EGGETARIAN
+};
+
+enum class CuisineCategory
+{
+    NORTH_INDIAN,
+    SOUTH_INDIAN
+};
+
+struct FoodPreference
+{
+    std::string userId;
+    DietCategory dietCategory;
+    SpiceLevel spiceLevel;
+    CuisineCategory cuisineCategory;
+    bool sweetTooth;
+
+    FoodPreference() = default;
+    FoodPreference(const std::string &userId, DietCategory dietCategory, SpiceLevel spiceLevel, CuisineCategory cuisineCategory, bool sweetTooth)
+        : userId(userId), dietCategory(dietCategory), spiceLevel(spiceLevel), cuisineCategory(cuisineCategory), sweetTooth(sweetTooth) {}
+};
+
 struct Comment
 {
     std::string userName;

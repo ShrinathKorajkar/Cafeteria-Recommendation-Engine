@@ -424,6 +424,7 @@ void viewDiscardedItemsFeedbacksAdmin(Admin *admin)
 
     std::cout << "Feedbacks on Items for Improvement" << std::endl;
 
+    std::cin.ignore();
     for (auto &feedback : feedbacks)
     {
         std::cout << "\nItem Name : " << feedback.menuItemName << std::endl;
