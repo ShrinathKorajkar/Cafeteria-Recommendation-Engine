@@ -55,26 +55,27 @@ enum class RequestCode
     REQUEST_DISCARDED_ITEM_FEEDBACK,
     GET_IMPROVEMENT_ITEMS,
     GIVE_IMPROVEMENT_FEEDBACK,
-    GET_IMPROVEMENT_FEEDBACKS
+    GET_IMPROVEMENT_FEEDBACKS,
+    UPDATE_FOOD_PREFERENCE
 };
 
 enum class SpiceLevel
 {
-    LOW,
+    LOW = 1,
     MEDIUM,
     HIGH
 };
 
 enum class DietCategory
 {
-    VEGETARIAN,
+    VEGETARIAN = 1,
     NON_VEGETARIAN,
     EGGETARIAN
 };
 
 enum class CuisineCategory
 {
-    NORTH_INDIAN,
+    NORTH_INDIAN = 1,
     SOUTH_INDIAN
 };
 
@@ -89,6 +90,15 @@ struct FoodPreference
     FoodPreference() = default;
     FoodPreference(const std::string &userId, DietCategory dietCategory, SpiceLevel spiceLevel, CuisineCategory cuisineCategory, bool sweetTooth)
         : userId(userId), dietCategory(dietCategory), spiceLevel(spiceLevel), cuisineCategory(cuisineCategory), sweetTooth(sweetTooth) {}
+
+    std::string serialze() const
+    {
+        return userId + getDelimiterString() +
+               dietCategoryToString(dietCategory) + getDelimiterString() +
+               spiceLevelToString(spiceLevel) + getDelimiterString() +
+               cuisineCategoryToString(cuisineCategory) + getDelimiterString() +
+               std::to_string(sweetTooth);
+    }
 };
 
 struct Comment
@@ -147,3 +157,9 @@ std::string requestCodeToString(RequestCode code);
 RequestCode stringToRequestCode(const std::string &str);
 std::string responseStatusToString(ResponseStatus status);
 ResponseStatus stringToResponseStatus(const std::string &str);
+std::string spiceLevelToString(SpiceLevel level);
+std::string dietCategoryToString(DietCategory category);
+std::string cuisineCategoryToString(CuisineCategory category);
+SpiceLevel stringToSpiceLevel(const std::string &str);
+DietCategory stringToDietCategory(const std::string &str);
+CuisineCategory stringToCuisineCategory(const std::string &str);

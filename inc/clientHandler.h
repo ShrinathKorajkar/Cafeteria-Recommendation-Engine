@@ -50,6 +50,7 @@ private:
     void handleGetImprovementItems(std::stringstream &receivedMessageStream);
     void handleGiveImprovmentFeedback(std::stringstream &receivedMessageStream);
     void handleGetImprovmentFeedback(std::stringstream &receivedMessageStream);
+    void handleUpdateFoodPreference(std::stringstream &receivedMessageStream);
 
     bool updateRecommendRating(const std::string &itemId);
     std::string getCurrentDate();

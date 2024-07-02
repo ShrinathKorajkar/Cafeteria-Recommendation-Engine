@@ -1182,6 +1182,93 @@ void giveImprovmentFeedback(Employee *employee)
     waitForUser2();
 }
 
+void updateFoodPreferences(Employee *employee)
+{
+    std::cout << "\nUpdate food preferences" << std::endl;
+    FoodPreference foodPreference;
+
+    std::cout << "Choose Your Diet Type: 1. Vegetarian     2. Non-Vegetarian    3. Eggetarian" << std::endl;
+    int choice = 0;
+    while (true)
+    {
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 3 || choice < 1)
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+    foodPreference.dietCategory = static_cast<DietCategory>(choice);
+
+    std::cout << "Choose Your Spice Level: 1. High     2. Medium    3. Low" << std::endl;
+    while (true)
+    {
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 3 || choice < 1)
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+    foodPreference.spiceLevel = static_cast<SpiceLevel>(choice);
+
+    std::cout << "Choose Your Cuisine: 1. North Indian     2. South Indian" << std::endl;
+    while (true)
+    {
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 2 || choice < 1)
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+    foodPreference.cuisineCategory = static_cast<CuisineCategory>(choice);
+
+    std::cout << "Do you have a sweet tooth: 1. Yes     2. No" << std::endl;
+    while (true)
+    {
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 2 || choice < 1)
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            break;
+        }
+    }
+    foodPreference.sweetTooth = choice == 1 ? true : false;
+
+    foodPreference.userId = employee->getId();
+
+    bool status = employee->updateFoodPreference(foodPreference);
+    if (status)
+    {
+        std::cout << "Food preferences updated successfully." << std::endl;
+    }
+    else
+    {
+        std::cout << "Failed to update food preferences." << std::endl;
+    }
+}
+
 void showEmployeeMenu(std::unique_ptr<User> &user)
 {
     Employee *employee = dynamic_cast<Employee *>(user.get());
@@ -1199,14 +1286,15 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
         std::cout << "3. Place Tomorrow's order" << std::endl;
         std::cout << "4. Give Feedback for Today's Order" << std::endl;
         std::cout << "5. Give Improvement Feedback" << std::endl;
-        std::cout << "6. Log out" << std::endl;
+        std::cout << "6. Update your food preferences" << std::endl;
+        std::cout << "7. Log out" << std::endl;
 
         while (true)
         {
             std::cout << "\nEnter your choice: ";
             std::cin >> choice;
 
-            if (std::cin.fail() || choice > 6 || choice < 1)
+            if (std::cin.fail() || choice > 7 || choice < 1)
             {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -1236,6 +1324,9 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
             giveImprovmentFeedback(employee);
             break;
         case 6:
+            updateFoodPreferences(employee);
+            break;
+        case 7:
             return;
         }
     }

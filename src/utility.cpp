@@ -133,6 +133,7 @@ std::string requestCodeToString(RequestCode code)
         {RequestCode::GET_IMPROVEMENT_ITEMS, "GET_IMPROVEMENT_ITEMS"},
         {RequestCode::GIVE_IMPROVEMENT_FEEDBACK, "GIVE_IMPROVEMENT_FEEDBACK"},
         {RequestCode::GET_IMPROVEMENT_FEEDBACKS, "GET_IMPROVEMENT_FEEDBACKS"},
+        {RequestCode::UPDATE_FOOD_PREFERENCE, "UPDATE_FOOD_PREFERENCE"},
     };
 
     auto it = codeToString.find(code);
@@ -171,7 +172,7 @@ RequestCode stringToRequestCode(const std::string &str)
         {"REQUEST_DISCARDED_ITEM_FEEDBACK", RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK},
         {"GET_IMPROVEMENT_ITEMS", RequestCode::GET_IMPROVEMENT_ITEMS},
         {"GIVE_IMPROVEMENT_FEEDBACK", RequestCode::GIVE_IMPROVEMENT_FEEDBACK},
-        {"GET_IMPROVEMENT_FEEDBACKS", RequestCode::GET_IMPROVEMENT_FEEDBACKS},
+        {"UPDATE_FOOD_PREFERENCE", RequestCode::UPDATE_FOOD_PREFERENCE},
     };
 
     auto it = stringToCode.find(str);
@@ -217,4 +218,72 @@ ResponseStatus stringToResponseStatus(const std::string &str)
     {
         return ResponseStatus::FAILURE; // Default to a sensible value
     }
+}
+
+std::string spiceLevelToString(SpiceLevel level)
+{
+    switch (level)
+    {
+    case SpiceLevel::LOW:
+        return "low";
+    case SpiceLevel::MEDIUM:
+        return "medium";
+    case SpiceLevel::HIGH:
+        return "high";
+    default:
+        return "medium";
+    }
+}
+
+std::string dietCategoryToString(DietCategory category)
+{
+    switch (category)
+    {
+    case DietCategory::VEGETARIAN:
+        return "vegetarian";
+    case DietCategory::NON_VEGETARIAN:
+        return "non-vegetarian";
+    case DietCategory::EGGETARIAN:
+        return "eggetarian";
+    default:
+        return "non-vegetarian";
+    }
+}
+
+std::string cuisineCategoryToString(CuisineCategory category)
+{
+    switch (category)
+    {
+    case CuisineCategory::NORTH_INDIAN:
+        return "northIndian";
+    case CuisineCategory::SOUTH_INDIAN:
+        return "southIndian";
+    default:
+        return "unknown";
+    }
+}
+
+SpiceLevel stringToSpiceLevel(const std::string &str)
+{
+    if (str == "low")
+        return SpiceLevel::LOW;
+    if (str == "high")
+        return SpiceLevel::HIGH;
+
+    return SpiceLevel::MEDIUM;
+}
+
+DietCategory stringToDietCategory(const std::string &str)
+{
+    if (str == "vegetarian")
+        return DietCategory::VEGETARIAN;
+    if (str == "eggetarian")
+        return DietCategory::EGGETARIAN;
+
+    return DietCategory::NON_VEGETARIAN;
+}
+
+CuisineCategory stringToCuisineCategory(const std::string &str)
+{
+    return str == "northIndian" ? CuisineCategory::NORTH_INDIAN : CuisineCategory::SOUTH_INDIAN;
 }

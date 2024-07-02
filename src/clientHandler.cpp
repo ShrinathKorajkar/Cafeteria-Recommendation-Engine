@@ -56,6 +56,7 @@ void ClientHandler::handleRequest(const std::string &request)
         {RequestCode::GET_IMPROVEMENT_ITEMS, &ClientHandler::handleGetImprovementItems},
         {RequestCode::GIVE_IMPROVEMENT_FEEDBACK, &ClientHandler::handleGiveImprovmentFeedback},
         {RequestCode::GET_IMPROVEMENT_FEEDBACKS, &ClientHandler::handleGetImprovmentFeedback},
+        {RequestCode::UPDATE_FOOD_PREFERENCE, &ClientHandler::handleUpdateFoodPreference},
     };
 
     auto handler = handlers.find(requestCode);
@@ -831,6 +832,47 @@ void ClientHandler::handleGetImprovmentFeedback(std::stringstream &receivedMessa
                 response += getDelimiterString() + col;
             }
         }
+    }
+    catch (const DatabaseException &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
+
+    write(clientSocket, response.c_str(), response.size());
+}
+
+void ClientHandler::handleUpdateFoodPreference(std::stringstream &receivedMessageStream)
+{
+
+    std::string userId;
+    std::getline(receivedMessageStream, userId, getDelimiterChar());
+
+    std::string dietCategory;
+    std::getline(receivedMessageStream, dietCategory, getDelimiterChar());
+
+    std::string spiceLevel;
+    std::getline(receivedMessageStream, spiceLevel, getDelimiterChar());
+
+    std::string cuisineCategory;
+    std::getline(receivedMessageStream, cuisineCategory, getDelimiterChar());
+
+    std::string sweetTooth;
+    std::getline(receivedMessageStream, sweetTooth, getDelimiterChar());
+    sweetTooth = sweetTooth == "1" ? "true" : "false";
+
+    std::string response = "FAILURE";
+    try
+    {
+        std::string query = "UPDATE Food_Preference SET "
+                            "diet_id = (SELECT diet_id FROM Diet_Category WHERE diet_type = '" +
+                            dietCategory + "'), spice_level_id = (SELECT spice_level_id FROM Spice_Level WHERE spice_level = '" +
+                            spiceLevel + "'), cuisine_id = (SELECT cuisine_id FROM Cuisine_Category WHERE cuisine_type = '" +
+                            cuisineCategory "'), sweet_tooth = " +
+                            sweetTooth + " WHERE user_id = " + userId;
+
+        database->executeQuery(query);
+
+        response = "SUCCESS";
     }
     catch (const DatabaseException &e)
     {

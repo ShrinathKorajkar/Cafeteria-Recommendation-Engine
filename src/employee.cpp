@@ -186,3 +186,19 @@ bool Employee::giveImprovementFeedback(const std::string &itemId, const std::str
         throw BadActionException("Error giving feedback: " + std::string(e.what()));
     }
 }
+
+bool Employee::updateFoodPreference(const FoodPreference &foodPreference) const
+{
+    try
+    {
+        std::string request = requestCodeToString(RequestCode::UPDATE_FOOD_PREFERENCE) + getDelimiterString() + foodPreference.serialze();
+        connection->send(request);
+
+        std::string responseStatus = connection->receive();
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
+    }
+    catch (const std::exception &e)
+    {
+        throw BadActionException("Error updating food preferences: " + std::string(e.what()));
+    }
+}

@@ -21,4 +21,5 @@ public:
     bool provideFeedback(const std::string &itemId, const std::string &comment) const;
     std::vector<ImprovementItem> getItemsToImprove() const;
     bool giveImprovementFeedback(const std::string &itemId, const std::string &comment) const;
+    bool updateFoodPreference(const FoodPreference &foodPreference) const;
 };
