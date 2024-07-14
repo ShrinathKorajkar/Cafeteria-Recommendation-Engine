@@ -843,7 +843,6 @@ void ClientHandler::handleGetImprovmentFeedback(std::stringstream &receivedMessa
 
 void ClientHandler::handleUpdateFoodPreference(std::stringstream &receivedMessageStream)
 {
-
     std::string userId;
     std::getline(receivedMessageStream, userId, getDelimiterChar());
 
@@ -863,15 +862,28 @@ void ClientHandler::handleUpdateFoodPreference(std::stringstream &receivedMessag
     std::string response = "FAILURE";
     try
     {
-        std::string query = "UPDATE Food_Preference SET "
-                            "diet_id = (SELECT diet_id FROM Diet_Category WHERE diet_type = '" +
-                            dietCategory + "'), spice_level_id = (SELECT spice_level_id FROM Spice_Level WHERE spice_level = '" +
-                            spiceLevel + "'), cuisine_id = (SELECT cuisine_id FROM Cuisine_Category WHERE cuisine_type = '" +
-                            cuisineCategory "'), sweet_tooth = " +
-                            sweetTooth + " WHERE user_id = " + userId;
+        std::string query = "SELECT * FROM Food_Preference WHERE user_id = " + userId;
+        auto result = database->fetchRows(query);
+
+        if (result.empty())
+        {
+            query = "INSERT INTO Food_Preference(user_id, diet_id, spice_level_id, cuisine_id, sweet_tooth) VALUES (" + userId + ", " +
+                    "(SELECT diet_id FROM Diet_Category WHERE diet_type = '" + dietCategory + "'), " +
+                    "(SELECT spice_level_id FROM Spice_Level WHERE spice_level = '" + spiceLevel + "'), " +
+                    "(SELECT cuisine_id FROM Cuisine_Category WHERE cuisine_type = '" + cuisineCategory + "'), " +
+                    sweetTooth + ")";
+        }
+        else
+        {
+            query = "UPDATE Food_Preference SET "
+                    "diet_id = (SELECT diet_id FROM Diet_Category WHERE diet_type = '" +
+                    dietCategory + "'), spice_level_id = (SELECT spice_level_id FROM Spice_Level WHERE spice_level = '" +
+                    spiceLevel + "'), cuisine_id = (SELECT cuisine_id FROM Cuisine_Category WHERE cuisine_type = '" +
+                    cuisineCategory + "'), sweet_tooth = " +
+                    sweetTooth + " WHERE user_id = " + userId;
+        }
 
         database->executeQuery(query);
-
         response = "SUCCESS";
     }
     catch (const DatabaseException &e)
