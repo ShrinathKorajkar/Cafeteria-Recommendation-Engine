@@ -5,12 +5,12 @@
 Admin::Admin(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
     : User(id, name, password, UserRole::ADMIN, notificationNumber), connection(TCPSocketClient::getInstance()) {}
 
-std::string Admin::addMenuItem(const MenuItem &item)
+std::string Admin::addMenuItem(const MenuItem &item, FoodPreference foodPreference)
 {
     try
     {
         std::string newItemId;
-        std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) + getDelimiterString() + item.serialize();
+        std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) + getDelimiterString() + foodPreference.serialze() + getDelimiterString() + item.serialize();
         connection->send(request);
 
         std::string response = connection->receive();

@@ -13,7 +13,7 @@ private:
 
 public:
     Admin(const std::string &id, const std::string &name, const std::string &password, int notificationNumber);
-    std::string addMenuItem(const MenuItem &item);
+    std::string addMenuItem(const MenuItem &item, FoodPreference foodPreference);
     bool deleteMenuItem(const std::string &itemId);
     std::string addUser(const User &user);
     bool deleteUser(const std::string &userId);

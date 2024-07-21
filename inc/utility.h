@@ -61,9 +61,9 @@ enum class RequestCode
 
 enum class SpiceLevel
 {
-    LOW = 1,
+    HIGH = 1,
     MEDIUM,
-    HIGH
+    LOW
 };
 
 enum class DietCategory
@@ -144,20 +144,18 @@ CuisineCategory stringToCuisineCategory(const std::string &str);
 
 struct FoodPreference
 {
-    std::string userId;
     DietCategory dietCategory;
     SpiceLevel spiceLevel;
     CuisineCategory cuisineCategory;
     bool sweetTooth;
 
     FoodPreference() = default;
-    FoodPreference(const std::string &userId, DietCategory dietCategory, SpiceLevel spiceLevel, CuisineCategory cuisineCategory, bool sweetTooth)
-        : userId(userId), dietCategory(dietCategory), spiceLevel(spiceLevel), cuisineCategory(cuisineCategory), sweetTooth(sweetTooth) {}
+    FoodPreference(DietCategory dietCategory, SpiceLevel spiceLevel, CuisineCategory cuisineCategory, bool sweetTooth)
+        : dietCategory(dietCategory), spiceLevel(spiceLevel), cuisineCategory(cuisineCategory), sweetTooth(sweetTooth) {}
 
     std::string serialze() const
     {
-        return userId + getDelimiterString() +
-               dietCategoryToString(dietCategory) + getDelimiterString() +
+        return dietCategoryToString(dietCategory) + getDelimiterString() +
                spiceLevelToString(spiceLevel) + getDelimiterString() +
                cuisineCategoryToString(cuisineCategory) + getDelimiterString() +
                std::to_string(sweetTooth);

@@ -40,7 +40,7 @@ private:
     void handleRollOutDailyMenu(std::stringstream &receivedMessageStream);
     void handleGenerateReport(std::stringstream &);
     void handleGetResponseOrders(std::stringstream &);
-    void handleGetDailyMenu(std::stringstream &);
+    void handleGetDailyMenu(std::stringstream &receivedMessageStream);
     void handleOrderFood(std::stringstream &receivedMessageStream);
     void handleGetTodaysOrder(std::stringstream &receivedMessageStream);
     void handleLikeDislike(std::stringstream &receivedMessageStream);

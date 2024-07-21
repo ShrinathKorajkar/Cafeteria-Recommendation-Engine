@@ -210,7 +210,74 @@ void addMenuItem(Admin *admin)
         }
     }
 
-    std::string newItemId = admin->addMenuItem(MenuItem("-1", name, price, description, category, availability));
+    FoodPreference foodPreference;
+
+    int choice = 0;
+    while (true)
+    {
+        std::cout << "Diet Type (1-Vegetarian   2-Non-Vegetarian   3-Eggetarian) : ";
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 3 || choice < 1)
+        {
+            clearInputStream();
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            foodPreference.dietCategory = static_cast<DietCategory>(choice);
+            break;
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "Spice Level (1-High   2-Medium   3-Low) : ";
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 3 || choice < 1)
+        {
+            clearInputStream();
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            foodPreference.spiceLevel = static_cast<SpiceLevel>(choice);
+            break;
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "Cuisine (1-North Indian   2-South Indian) : ";
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 2 || choice < 1)
+        {
+            clearInputStream();
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            foodPreference.cuisineCategory = static_cast<CuisineCategory>(choice);
+            break;
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "Sweet (1-Yes   2-No) : ";
+        std::cin >> choice;
+        if (std::cin.fail() || choice > 2 || choice < 1)
+        {
+            clearInputStream();
+            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+        }
+        else
+        {
+            foodPreference.sweetTooth = choice == 1 ? true : false;
+            break;
+        }
+    }
+
+    std::string newItemId = admin->addMenuItem(MenuItem("-1", name, price, description, category, availability), foodPreference);
     if (newItemId.empty())
     {
         std::cout << "Menu Item Already Exists. Try Again" << std::endl;
@@ -1255,8 +1322,6 @@ void updateFoodPreferences(Employee *employee)
         }
     }
     foodPreference.sweetTooth = choice == 1 ? true : false;
-
-    foodPreference.userId = employee->getId();
 
     bool status = employee->updateFoodPreference(foodPreference);
     if (status)

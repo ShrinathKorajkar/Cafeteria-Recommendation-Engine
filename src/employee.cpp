@@ -9,7 +9,7 @@ std::vector<MenuItem> Employee::getDailyMenu() const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GET_DAILY_MENU);
+        std::string request = requestCodeToString(RequestCode::GET_DAILY_MENU) + getDelimiterString() + userId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -191,7 +191,7 @@ bool Employee::updateFoodPreference(const FoodPreference &foodPreference) const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::UPDATE_FOOD_PREFERENCE) + getDelimiterString() + foodPreference.serialze();
+        std::string request = requestCodeToString(RequestCode::UPDATE_FOOD_PREFERENCE) + getDelimiterString() + userId + getDelimiterString() + foodPreference.serialze();
         connection->send(request);
 
         std::string responseStatus = connection->receive();

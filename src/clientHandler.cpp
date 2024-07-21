@@ -177,6 +177,13 @@ void ClientHandler::handleGetAllUsers(std::stringstream &)
 
 void ClientHandler::handleAddMenuItem(std::stringstream &receivedMessageStream)
 {
+    std::string dietCategory, spiceLevel, cuisineCategory, sweetTooth;
+    std::getline(receivedMessageStream, dietCategory, getDelimiterChar());
+    std::getline(receivedMessageStream, spiceLevel, getDelimiterChar());
+    std::getline(receivedMessageStream, cuisineCategory, getDelimiterChar());
+    std::getline(receivedMessageStream, sweetTooth, getDelimiterChar());
+    sweetTooth = (sweetTooth == "0") ? "false" : "true";
+
     std::string itemId, name, price, description, category, availability;
     std::getline(receivedMessageStream, itemId, getDelimiterChar());
     std::getline(receivedMessageStream, name, getDelimiterChar());
@@ -184,14 +191,17 @@ void ClientHandler::handleAddMenuItem(std::stringstream &receivedMessageStream)
     std::getline(receivedMessageStream, description, getDelimiterChar());
     std::getline(receivedMessageStream, category, getDelimiterChar());
     std::getline(receivedMessageStream, availability, getDelimiterChar());
-
     availability = (availability == "0") ? "false" : "true";
 
     std::string response = "FAILURE";
     try
     {
-        database->executeQuery("INSERT INTO Menu_Item(name, price, description, category, availability) VALUES ('" +
-                               name + "', " + price + ", '" + description + "', '" + category + "', " + availability + ")");
+        database->executeQuery("INSERT INTO Menu_Item(name, price, description, category, availability, diet_id, spice_level_id, cuisine_id, sweet_tooth) VALUES ('" +
+                               name + "', " + price + ", '" + description + "', '" + category + "', " + availability + ", " +
+                               "(SELECT diet_id FROM Diet_Category WHERE diet_type = '" + dietCategory + "'), " +
+                               "(SELECT spice_level_id FROM Spice_Level WHERE spice_level = '" + spiceLevel + "'), " +
+                               "(SELECT cuisine_id FROM Cuisine_Category WHERE cuisine_type = '" + cuisineCategory + "'), " +
+                               sweetTooth + ")");
 
         std::string notificationMessage = "New Menu Item Added : " + name + ". Checkout Menu";
         database->executeQuery("INSERT INTO Notification(message) VALUES ('" + notificationMessage + "')");
@@ -215,7 +225,7 @@ void ClientHandler::handleDeleteItem(std::stringstream &receivedMessageStream)
     std::string response = "FAILURE";
     try
     {
-        if (database->fetchRows("SELECT * FROM Menu_Item WHERE item_id = " + itemId).size() > 0)
+        if (database->fetchRows("SELECT item_id FROM Menu_Item WHERE item_id = " + itemId).size() > 0)
         {
             database->executeQuery("DELETE FROM Menu_Item WHERE item_id = " + itemId);
             response = "SUCCESS";
@@ -234,7 +244,7 @@ void ClientHandler::handleGetAllMenuItems(std::stringstream &)
     std::string response = "SUCCESS";
     try
     {
-        std::string query = "SELECT * FROM Menu_Item ORDER BY recommend_rating DESC";
+        std::string query = "SELECT item_id, name, price, description, category, availability, likes, dislikes, recommend_rating FROM Menu_Item ORDER BY recommend_rating DESC";
 
         auto queryResult = database->fetchRows(query);
 
@@ -281,7 +291,7 @@ void ClientHandler::handleGetRecommendedMenu(std::stringstream &receivedMessageS
     std::string response = "SUCCESS";
     try
     {
-        std::string query = "SELECT * FROM Menu_Item WHERE availability = true ORDER BY category, recommend_rating DESC";
+        std::string query = "SELECT item_id, name, price, description, category, availability, likes, dislikes, recommend_rating FROM Menu_Item WHERE availability = true ORDER BY category, recommend_rating DESC";
 
         auto queryResult = database->fetchRows(query);
 
@@ -466,16 +476,71 @@ void ClientHandler::handleGetResponseOrders(std::stringstream &)
     write(clientSocket, response.c_str(), response.size());
 }
 
-void ClientHandler::handleGetDailyMenu(std::stringstream &)
+void ClientHandler::handleGetDailyMenu(std::stringstream &receivedMessageStream)
 {
-    std::string response = "SUCCESS";
+    std::string userId;
+    std::getline(receivedMessageStream, userId, getDelimiterChar());
+
+    std::string response = "FAILURE";
     try
     {
-        std::string query = "SELECT mi.* FROM Menu_Item mi "
+        std::string query = "SELECT mi.item_id, mi.name, mi.price, mi.description, mi.category, mi.availability, mi.likes, mi.dislikes, mi.recommend_rating FROM Menu_Item mi "
                             "INNER JOIN Daily_Menu dm ON mi.item_id = dm.item_id "
                             "WHERE dm.menu_date = CURDATE()";
 
-        auto queryResult = database->fetchRows(query);
+        std::string query2 = "SELECT diet_id, spice_level_id, cuisine_id, sweet_tooth FROM Food_Preference WHERE user_id = " + userId;
+        auto queryResult = database->fetchRows(query2);
+
+        if (!queryResult.empty())
+        {
+            std::string dietId = queryResult[0][0];
+            std::string spiceLevelId = queryResult[0][1];
+            std::string cuisineId = queryResult[0][2];
+            std::string sweetTooth = queryResult[0][3];
+
+            std::string queryForDiet = query + " AND mi.diet_id = '" + dietId + "'";
+
+            std::string queryForSpiceLevel = query +
+                                             " AND mi.spice_level_id = '" + spiceLevelId + "'" +
+                                             " AND NOT (mi.diet_id = '" + dietId + "')";
+
+            std::string queryForCuisine = query +
+                                          " AND mi.cuisine_id = '" + cuisineId + "'" +
+                                          " AND NOT (mi.diet_id = '" + dietId + "')" +
+                                          " AND NOT (mi.spice_level_id = '" + spiceLevelId + "')";
+
+            std::string queryForSweetTooth = query +
+                                             " AND mi.sweet_tooth = '" + sweetTooth + "'" +
+                                             " AND NOT (mi.cuisine_id = '" + cuisineId + "')" +
+                                             " AND NOT (mi.diet_id = '" + dietId + "')" +
+                                             " AND NOT (mi.spice_level_id = '" + spiceLevelId + "')";
+
+            std::string queryForRemainingElements = query +
+                                                    " AND NOT (mi.diet_id = '" + dietId + "')" +
+                                                    " AND NOT (mi.spice_level_id = '" + spiceLevelId + "')" +
+                                                    " AND NOT (mi.cuisine_id = '" + cuisineId + "')" +
+                                                    " AND NOT (mi.sweet_tooth = '" + sweetTooth + "')";
+
+            queryResult = database->fetchRows(queryForDiet);
+
+            auto queryResultTemp = database->fetchRows(queryForSpiceLevel);
+            queryResult.insert(queryResult.end(), queryResultTemp.begin(), queryResultTemp.end());
+
+            queryResultTemp = database->fetchRows(queryForCuisine);
+            queryResult.insert(queryResult.end(), queryResultTemp.begin(), queryResultTemp.end());
+
+            queryResultTemp = database->fetchRows(queryForSweetTooth);
+            queryResult.insert(queryResult.end(), queryResultTemp.begin(), queryResultTemp.end());
+
+            queryResultTemp = database->fetchRows(queryForRemainingElements);
+            queryResult.insert(queryResult.end(), queryResultTemp.begin(), queryResultTemp.end());
+        }
+        else
+        {
+            queryResult = database->fetchRows(query);
+        }
+
+        response = "SUCCESS";
 
         int rowCount = queryResult.size();
         response += getDelimiterString() + std::to_string(rowCount);
@@ -511,6 +576,7 @@ void ClientHandler::handleGetDailyMenu(std::stringstream &)
     {
         std::cout << e.what() << std::endl;
     }
+
     write(clientSocket, response.c_str(), response.size());
 }
 
@@ -686,7 +752,7 @@ void ClientHandler::handleGetDiscardedMenuItems(std::stringstream &receivedMessa
     std::string response = "SUCCESS";
     try
     {
-        std::string query = "SELECT mi.* FROM Menu_Item mi "
+        std::string query = "SELECT mi.item_id, mi.name, mi.price, mi.description, mi.category, mi.availability, mi.likes, mi.dislikes, mi.recommend_rating FROM Menu_Item mi "
                             "INNER JOIN Discarded_Menu_Item dm ON mi.item_id = dm.item_id "
                             "WHERE YEAR(dm.date_discarded) = YEAR(CURDATE()) "
                             "AND MONTH(dm.date_discarded) = MONTH(CURDATE())";
