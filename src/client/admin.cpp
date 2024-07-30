@@ -170,7 +170,7 @@ std::vector<MenuItem> Admin::getDiscardedMenuItems() const
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error fetching all menu menuItems: " + std::string(e.what()));
+        throw BadActionException("Error fetching all menu Items: " + std::string(e.what()));
     }
 }
 
@@ -196,7 +196,7 @@ bool Admin::requestFeedbackForDiscardedItem(const std::string &itemId)
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error fetching all menu menuItems: " + std::string(e.what()));
+        throw BadActionException("Error requesting for feedback of menuItems: " + std::string(e.what()));
     }
 }
 
@@ -208,6 +208,7 @@ std::vector<ImprovementFeedback> Admin::getDiscardedItemsFeedback() const
         connection->send(request);
 
         std::string response = connection->receive();
+
         std::stringstream responseStream(response);
         std::vector<ImprovementFeedback> feedbacks;
 
@@ -249,6 +250,6 @@ std::vector<ImprovementFeedback> Admin::getDiscardedItemsFeedback() const
     }
     catch (const std::exception &e)
     {
-        throw BadActionException("Error fetching all menu menuItems: " + std::string(e.what()));
+        throw BadActionException("Error fetching feedback for discarded menu items: " + std::string(e.what()));
     }
 }

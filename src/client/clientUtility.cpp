@@ -1,16 +1,23 @@
 #include "admin.h"
 #include "chef.h"
 #include "employee.h"
+
+#include "authenticator.h"
 #include "exception.h"
 #include "tcpSocketClient.h"
-#include "authenticator.h"
 
+#include <algorithm>
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include <algorithm>
 
-std::shared_ptr<NetworkConnection> client;
+#define CLEAR_SCREEN ""
+#define SAVE_CURSOR_POSITION ""
+#define RESTORE_CURSOR_POSITION ""
+// #define CLEAR_SCREEN "\033[2J\033[H"
+// #define SAVE_CURSOR_POSITION "\033[s"
+// #define RESTORE_CURSOR_POSITION "\033[u"
 
 void clearInputStream()
 {
@@ -18,14 +25,28 @@ void clearInputStream()
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
+void waitForUserAfterClearingStream()
+{
+    clearInputStream();
+    std::cout << "\nPress Any key to continue..." << std::endl;
+    std::cin.ignore();
+}
+
+void waitForUserWithoutClearingStream()
+{
+    std::cout << "\nPress Any key to continue..." << std::endl;
+    std::cin.ignore();
+}
+
 std::unique_ptr<User> loginUser(Authenticator &authenticator)
 {
     std::string username;
     std::string password;
 
+    std::cout << CLEAR_SCREEN;
     while (true)
     {
-        std::cout << "Enter UserId: ";
+        std::cout << "\nEnter UserId: ";
         std::getline(std::cin, username);
         std::cout << "Enter Password: ";
         std::getline(std::cin, password);
@@ -33,26 +54,13 @@ std::unique_ptr<User> loginUser(Authenticator &authenticator)
         std::unique_ptr<User> user = authenticator.authenticateUser(username, password);
         if (user->getId() == "-1")
         {
-            std::cout << "\nInvalid username or password. Try Again\n\n";
+            std::cout << "\nInvalid Username or Password. Try Again";
         }
         else
         {
             return user;
         }
     }
-}
-
-void waitForUser()
-{
-    std::cout << "\nPress Any key to continue..." << std::endl;
-    std::cin.ignore();
-    std::cin.get();
-}
-
-void waitForUser2()
-{
-    std::cout << "\nPress Any key to continue..." << std::endl;
-    std::cin.ignore();
 }
 
 void addNewUser(Admin *admin)
@@ -63,6 +71,7 @@ void addNewUser(Admin *admin)
     int notification_number = 0;
 
     std::cin.ignore();
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nEnter New User Details" << std::endl;
     std::cout << "Name : ";
     std::getline(std::cin, name);
@@ -79,7 +88,7 @@ void addNewUser(Admin *admin)
         if (std::cin.fail() || tempInput < 1 || tempInput > 3)
         {
             clearInputStream();
-            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid Input! Please enter a valid number." << std::endl;
         }
         else
         {
@@ -91,14 +100,14 @@ void addNewUser(Admin *admin)
     std::string newUserId = admin->addUser(User("-1", name, password, role, notification_number));
     if (newUserId.empty())
     {
-        std::cout << "\nUser Already Exists. Try Again" << std::endl;
+        std::cout << "\nUser Already Exist" << std::endl;
     }
     else
     {
         std::cout << "\nNew user created with id : " << newUserId << std::endl;
     }
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 void deleteUser(Admin *admin)
@@ -106,7 +115,8 @@ void deleteUser(Admin *admin)
     std::string userId;
 
     std::cin.ignore();
-    std::cout << "\nEnter User Id of User to Delete : ";
+    std::cout << CLEAR_SCREEN;
+    std::cout << "\nEnter User Id of the User to Delete : ";
     std::getline(std::cin, userId);
 
     bool result = admin->deleteUser(userId);
@@ -116,30 +126,41 @@ void deleteUser(Admin *admin)
     }
     else
     {
-        std::cout << "\nUser Not Found" << std::endl;
+        std::cout << "\nUser with id " + userId + " Not Found" << std::endl;
     }
 
-    waitForUser2();
+    waitForUserWithoutClearingStream();
 }
 
 void viewAllUsers(Admin *admin)
 {
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nList of All users" << std::endl;
 
     std::vector<User> users = admin->getAllUsers();
     if (users.size() == 0)
     {
-        std::cout << "\nNo users found. create new user before viewing" << std::endl;
+        std::cout << "\nNo users found. Create new user from admin menu" << std::endl;
         return;
     }
 
-    std::cout << "UserId    UserName    Role    UserPassword" << std::endl;
+    std::cout << std::left
+              << std::setw(10) << "UserId"
+              << std::setw(15) << "UserName"
+              << std::setw(15) << "Role"
+              << std::setw(20) << "UserPassword"
+              << std::endl;
+
     for (const User &user : users)
     {
-        std::cout << "  " << user.getId() << "      " << user.getName() << "    " << userRoleToString(user.getRole()) << "    " << user.getPassword() << std::endl;
+        std::cout << std::setw(10) << user.getId()
+                  << std::setw(15) << user.getName()
+                  << std::setw(15) << userRoleToString(user.getRole())
+                  << std::setw(20) << user.getPassword()
+                  << std::endl;
     }
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 void addMenuItem(Admin *admin)
@@ -151,6 +172,7 @@ void addMenuItem(Admin *admin)
     bool availability;
 
     std::cin.ignore();
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nEnter New Menu Item Details" << std::endl;
     std::cout << "Name : ";
     std::getline(std::cin, name);
@@ -201,7 +223,7 @@ void addMenuItem(Admin *admin)
         if (std::cin.fail() || tempInput < 0 || tempInput > 1)
         {
             clearInputStream();
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -220,7 +242,7 @@ void addMenuItem(Admin *admin)
         if (std::cin.fail() || choice > 3 || choice < 1)
         {
             clearInputStream();
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -236,7 +258,7 @@ void addMenuItem(Admin *admin)
         if (std::cin.fail() || choice > 3 || choice < 1)
         {
             clearInputStream();
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -252,7 +274,7 @@ void addMenuItem(Admin *admin)
         if (std::cin.fail() || choice > 2 || choice < 1)
         {
             clearInputStream();
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -268,7 +290,7 @@ void addMenuItem(Admin *admin)
         if (std::cin.fail() || choice > 2 || choice < 1)
         {
             clearInputStream();
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -280,14 +302,14 @@ void addMenuItem(Admin *admin)
     std::string newItemId = admin->addMenuItem(MenuItem("-1", name, price, description, category, availability), foodPreference);
     if (newItemId.empty())
     {
-        std::cout << "Menu Item Already Exists. Try Again" << std::endl;
+        std::cout << "\nMenu Item Already Exists. Try Again" << std::endl;
     }
     else
     {
-        std::cout << "New Menu Item created with id : " << newItemId << std::endl;
+        std::cout << "\nNew Menu Item created with id : " << newItemId << std::endl;
     }
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 void deleteMenuItem(Admin *admin)
@@ -295,27 +317,28 @@ void deleteMenuItem(Admin *admin)
     std::string itemId;
 
     std::cin.ignore();
-    std::cout << "\nEnter item id of Menu to Delete : ";
+    std::cout << CLEAR_SCREEN;
+    std::cout << "\nEnter Item Id of the Menu to Delete : ";
     std::getline(std::cin, itemId);
 
     bool result = admin->deleteMenuItem(itemId);
     if (result)
     {
-        std::cout << "Menu Item Deleted Successfully" << std::endl;
+        std::cout << "\nMenu Item Deleted Successfully" << std::endl;
     }
     else
     {
-        std::cout << "Menu Item Not Found" << std::endl;
+        std::cout << "\nMenu Itemwith id " + itemId + " Not Found" << std::endl;
     }
 
-    waitForUser2();
+    waitForUserWithoutClearingStream();
 }
 
 void showComments(std::vector<Comment> comments)
 {
     if (comments.size() == 0)
     {
-        std::cout << "No comments available" << std::endl;
+        std::cout << "\nNo comments available" << std::endl;
         return;
     }
 
@@ -348,13 +371,17 @@ void viewAllMenuItemsAdmin(Admin *admin)
     if (menuItems.size() == 0)
     {
         std::cout << "No menu items found. create new menu item before viewing" << std::endl;
+        waitForUserAfterClearingStream();
         return;
     }
 
     std::cin.ignore();
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nList of All Menu Items" << std::endl;
+    std::cout << SAVE_CURSOR_POSITION;
     for (const MenuItem &menuItem : menuItems)
     {
+        std::cout << RESTORE_CURSOR_POSITION;
         std::cout << "\nItemId : " << menuItem.getItemId()
                   << "\nName  : " << menuItem.getName()
                   << "\nPrice : " << menuItem.getPrice()
@@ -402,7 +429,7 @@ void viewAllMenuItemsAdmin(Admin *admin)
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -413,14 +440,18 @@ void viewDiscardedMenuItemsAdmin(Admin *admin)
     std::vector<MenuItem> menuItems = admin->getDiscardedMenuItems();
     if (menuItems.size() == 0)
     {
-        std::cout << "No New Discarded Menu Items This month. Check Next Month" << std::endl;
+        std::cout << "\nNo New Discarded Menu Items This month. Check Next Month" << std::endl;
+        waitForUserAfterClearingStream();
         return;
     }
 
     std::cin.ignore();
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nList of All Discarded Menu Items" << std::endl;
+    std::cout << SAVE_CURSOR_POSITION;
     for (const MenuItem &menuItem : menuItems)
     {
+        std::cout << RESTORE_CURSOR_POSITION;
         std::cout << "\nName  : " << menuItem.getName()
                   << "\nCategory : " << foodCategoryToString(menuItem.getCategory())
                   << "\nLikes : " << menuItem.getLikes()
@@ -474,7 +505,7 @@ void viewDiscardedMenuItemsAdmin(Admin *admin)
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -485,13 +516,15 @@ void viewDiscardedItemsFeedbacksAdmin(Admin *admin)
     std::vector<ImprovementFeedback> feedbacks = admin->getDiscardedItemsFeedback();
     if (feedbacks.size() == 0)
     {
-        std::cout << "There is no menu item for which improvement feedback was requested" << std::endl;
+        std::cout << "\nThere is no menu item for which improvement feedback was requested or there are no feedbacks for any items" << std::endl;
+        waitForUserAfterClearingStream();
+
         return;
     }
 
+    std::cin.ignore();
     std::cout << "Feedbacks on Items for Improvement" << std::endl;
 
-    std::cin.ignore();
     for (auto &feedback : feedbacks)
     {
         std::cout << "\nItem Name : " << feedback.menuItemName << std::endl;
@@ -506,8 +539,9 @@ void showAdminMenu(std::unique_ptr<User> &user)
 
     while (true)
     {
+        std::cout << CLEAR_SCREEN;
         std::cout << "\n-------------------------------------" << std::endl;
-        std::cout << "      Welcome " + user->getName() << std::endl;
+        std::cout << "        Welcome " + user->getName() << std::endl;
         std::cout << "-------------------------------------" << std::endl;
         std::cout << "----------Select Function------------" << std::endl;
         std::cout << "1. Add new user" << std::endl;
@@ -528,7 +562,7 @@ void showAdminMenu(std::unique_ptr<User> &user)
             if (std::cin.fail() || choice > 9 || choice < 1)
             {
                 clearInputStream();
-                std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+                std::cerr << "\nInvalid Input! Please enter a valid number." << std::endl;
             }
             else
             {
@@ -573,14 +607,18 @@ void viewAllMenuItemsChef(Chef *chef)
     std::vector<MenuItem> menuItems = chef->getAllMenuItems();
     if (menuItems.size() == 0)
     {
-        std::cout << "Menu is empty" << std::endl;
+        std::cout << "\nMenu is empty" << std::endl;
+        waitForUserAfterClearingStream();
         return;
     }
 
     std::cin.ignore();
+    std::cout << CLEAR_SCREEN;
     std::cout << "\nList of All Menu Items" << std::endl;
+    std::cout << SAVE_CURSOR_POSITION;
     for (const MenuItem &menuItem : menuItems)
     {
+        std::cout << RESTORE_CURSOR_POSITION;
         std::cout << "\nItemId : " << menuItem.getItemId()
                   << "\nName  : " << menuItem.getName()
                   << "\nPrice : " << menuItem.getPrice()
@@ -628,7 +666,7 @@ void viewAllMenuItemsChef(Chef *chef)
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -649,7 +687,7 @@ void viewNotificationsChef(Chef *chef)
         std::cout << notification << std::endl;
     }
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 std::vector<MenuItem> chooseItems(const std::vector<MenuItem> &menu)
@@ -681,7 +719,7 @@ std::vector<MenuItem> chooseItems(const std::vector<MenuItem> &menu)
 
             std::cout << "\nPress N to see next item"
                       << "\nPress A to add to List"
-                      << "\nPress D to go to next category or Go back" << std::endl;
+                      << "\nPress B Go back" << std::endl;
             std::cout << "Enter your choice : ";
             std::getline(std::cin, choice);
 
@@ -694,13 +732,13 @@ std::vector<MenuItem> chooseItems(const std::vector<MenuItem> &menu)
                 selectedItems.push_back(menuItem);
                 break;
             }
-            else if (choice == "D")
+            else if (choice == "B")
             {
                 return selectedItems;
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -793,19 +831,19 @@ void viewOrderResponse(Chef *chef)
     if (orderResponses.size() == 0)
     {
         std::cout << "No Order Responses Available" << std::endl;
-        waitForUser();
+        waitForUserAfterClearingStream();
         return;
     }
 
     std::cout << "\nOrder Responses" << std::endl;
-    std::cout << "Menu Item     Orders" << std::endl;
+    std::cout << std::left << std::setw(20) << "Menu Item" << std::setw(10) << "Orders" << std::endl;
     for (const OrderResponse &orderResponse : orderResponses)
     {
-        std::cout << orderResponse.foodName << "    " << orderResponse.totalOrders << std::endl;
+        std::cout << std::left << std::setw(20) << orderResponse.foodName << std::setw(10) << orderResponse.totalOrders << std::endl;
     }
     std::cout << std::endl;
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 void generateReport(Chef *chef)
@@ -842,16 +880,16 @@ void generateReport(Chef *chef)
             }
             else
             {
-                std::cout << "Invalid year. Please enter a year between 1900 and " << currentYear << "." << std::endl;
+                std::cout << "\nInvalid year. Please enter a year between 1900 and " << currentYear << "." << std::endl;
             }
         }
         else
         {
-            std::cout << "Invalid format. Please enter the date in MM/YYYY format." << std::endl;
+            std::cout << "\nInvalid format. Please enter the date in MM/YYYY format." << std::endl;
         }
     }
 
-    waitForUser2();
+    waitForUserWithoutClearingStream();
 }
 
 void viewDiscardedMenuItemsChef(Chef *chef)
@@ -920,7 +958,7 @@ void viewDiscardedMenuItemsChef(Chef *chef)
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -931,10 +969,11 @@ void viewDiscardedItemsFeedbacksChef(Chef *chef)
     std::vector<ImprovementFeedback> feedbacks = chef->getDiscardedItemsFeedback();
     if (feedbacks.size() == 0)
     {
-        std::cout << "There is no menu item for which improvement feedback was requested" << std::endl;
+        std::cout << "\nThere is no menu item for which improvement feedback was requested or there are no feedbacks for any items" << std::endl;
         return;
     }
 
+    std::cin.ignore();
     std::cout << "Feedbacks on Items for Improvement" << std::endl;
 
     for (auto &feedback : feedbacks)
@@ -974,7 +1013,7 @@ void showChefMenu(std::unique_ptr<User> &user)
             {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+                std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
             }
             else
             {
@@ -1071,7 +1110,7 @@ void viewAllMenuItemsEmployee(Employee *employee)
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
@@ -1092,7 +1131,7 @@ void viewNotificationsEmployee(Employee *employee)
         std::cout << notification << std::endl;
     }
 
-    waitForUser();
+    waitForUserAfterClearingStream();
 }
 
 void placeTomorrowsOrder(Employee *employee)
@@ -1100,8 +1139,8 @@ void placeTomorrowsOrder(Employee *employee)
     std::vector<MenuItem> menuItems = employee->getDailyMenu();
     if (menuItems.empty())
     {
-        std::cout << "No items available for tomorrow's menu." << std::endl;
-        waitForUser();
+        std::cout << "\nNo items available for tomorrow's menu." << std::endl;
+        waitForUserAfterClearingStream();
         return;
     }
 
@@ -1110,7 +1149,7 @@ void placeTomorrowsOrder(Employee *employee)
     if (selectedItems.empty())
     {
         std::cout << "No items selected for tomorrow's order." << std::endl;
-        waitForUser();
+        waitForUserWithoutClearingStream();
         return;
     }
 
@@ -1124,7 +1163,7 @@ void placeTomorrowsOrder(Employee *employee)
         std::cout << "Failed to place order." << std::endl;
     }
 
-    waitForUser2();
+    waitForUserWithoutClearingStream();
 }
 
 void giveFeedbackEmployee(Employee *employee)
@@ -1133,15 +1172,15 @@ void giveFeedbackEmployee(Employee *employee)
     if (order.empty())
     {
         std::cout << "There is no order Placed today." << std::endl;
-        waitForUser();
+        waitForUserAfterClearingStream();
         return;
     }
 
-    std::cout << "Your Order" << std::endl;
+    std::cout << "Give Feedback for Your Order : " << std::endl;
     std::cin.ignore();
     for (const OrderItem &item : order)
     {
-        std::cout << item.menuItemName << std::endl;
+        std::cout << "\nItem name : " << item.menuItemName << std::endl;
 
         while (true)
         {
@@ -1174,7 +1213,6 @@ void giveFeedbackEmployee(Employee *employee)
                 {
                     std::cout << "Failed to add feedback." << std::endl;
                 }
-                break;
             }
             else if (choice == "L")
             {
@@ -1187,7 +1225,6 @@ void giveFeedbackEmployee(Employee *employee)
                 {
                     std::cout << "Failed to Like." << std::endl;
                 }
-                break;
             }
             else if (choice == "D")
             {
@@ -1200,16 +1237,17 @@ void giveFeedbackEmployee(Employee *employee)
                 {
                     std::cout << "Failed to Dislike." << std::endl;
                 }
-                break;
             }
             else
             {
-                std::cout << "Invalid choice. Try Again" << std::endl;
+                std::cout << "\nInvalid choice. Try Again" << std::endl;
             }
         }
     }
 
-    waitForUser2();
+    std::cout << "\nThere are no more items you ordered today. Thank you for the feedback." << std::endl;
+
+    waitForUserWithoutClearingStream();
 }
 
 void giveImprovmentFeedback(Employee *employee)
@@ -1218,7 +1256,7 @@ void giveImprovmentFeedback(Employee *employee)
     if (items.empty())
     {
         std::cout << "There is no requested feedback for any Item yet" << std::endl;
-        waitForUser();
+        waitForUserAfterClearingStream();
         return;
     }
 
@@ -1246,7 +1284,7 @@ void giveImprovmentFeedback(Employee *employee)
         break;
     }
 
-    waitForUser2();
+    waitForUserWithoutClearingStream();
 }
 
 void updateFoodPreferences(Employee *employee)
@@ -1254,7 +1292,7 @@ void updateFoodPreferences(Employee *employee)
     std::cout << "\nUpdate food preferences" << std::endl;
     FoodPreference foodPreference;
 
-    std::cout << "Choose Your Diet Type: 1. Vegetarian     2. Non-Vegetarian    3. Eggetarian" << std::endl;
+    std::cout << "Choose Your Diet Type (1. Vegetarian     2. Non-Vegetarian    3. Eggetarian) :";
     int choice = 0;
     while (true)
     {
@@ -1263,7 +1301,7 @@ void updateFoodPreferences(Employee *employee)
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -1272,7 +1310,7 @@ void updateFoodPreferences(Employee *employee)
     }
     foodPreference.dietCategory = static_cast<DietCategory>(choice);
 
-    std::cout << "Choose Your Spice Level: 1. High     2. Medium    3. Low" << std::endl;
+    std::cout << "Choose Your Spice Level (1. High     2. Medium    3. Low) :";
     while (true)
     {
         std::cin >> choice;
@@ -1280,7 +1318,7 @@ void updateFoodPreferences(Employee *employee)
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -1289,7 +1327,7 @@ void updateFoodPreferences(Employee *employee)
     }
     foodPreference.spiceLevel = static_cast<SpiceLevel>(choice);
 
-    std::cout << "Choose Your Cuisine: 1. North Indian     2. South Indian" << std::endl;
+    std::cout << "Choose Your Cuisine (1. North Indian     2. South Indian) :";
     while (true)
     {
         std::cin >> choice;
@@ -1297,7 +1335,7 @@ void updateFoodPreferences(Employee *employee)
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -1306,7 +1344,7 @@ void updateFoodPreferences(Employee *employee)
     }
     foodPreference.cuisineCategory = static_cast<CuisineCategory>(choice);
 
-    std::cout << "Do you have a sweet tooth: 1. Yes     2. No" << std::endl;
+    std::cout << "Do you have a sweet tooth (1. Yes     2. No) :";
     while (true)
     {
         std::cin >> choice;
@@ -1314,7 +1352,7 @@ void updateFoodPreferences(Employee *employee)
         {
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+            std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
         }
         else
         {
@@ -1363,7 +1401,7 @@ void showEmployeeMenu(std::unique_ptr<User> &user)
             {
                 std::cin.clear();
                 std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                std::cerr << "Invalid input. Please enter a valid number." << std::endl;
+                std::cerr << "\nInvalid input. Please enter a valid number." << std::endl;
             }
             else
             {
@@ -1401,6 +1439,8 @@ void startClient()
 {
     try
     {
+        std::shared_ptr<NetworkConnection> client;
+
         TCPSocketClient::createInstance("127.0.0.1", 8080);
 
         client = TCPSocketClient::getInstance();
@@ -1424,8 +1464,8 @@ void startClient()
         }
         client->disconnect();
     }
-    catch (const CustomException &e)
+    catch (const std::exception &e)
     {
-        std::cerr << "Client error: " << e.what() << std::endl;
+        std::cerr << "\nServer Down! Try logging in after some time" << std::endl;
     }
 }

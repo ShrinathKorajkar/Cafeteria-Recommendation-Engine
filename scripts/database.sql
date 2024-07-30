@@ -225,8 +225,6 @@ CREATE TABLE `Food_Preference` (
 --     SELECT item_id, CURDATE()
 --     FROM Menu_Item
 --     WHERE recommend_rating < 2;
---     DELETE FROM Menu_Item
---     WHERE recommend_rating < 2;
 -- END $$
 -- 
 -- DELIMITER ;
