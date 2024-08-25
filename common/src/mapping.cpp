@@ -1,25 +1,7 @@
-#include "utility.h"
+#include "mapping.h"
 
 #include <algorithm>
-
-char getDelimiterChar()
-{
-    return '+';
-}
-
-std::string getDelimiterString()
-{
-    return "+";
-}
-
-std::string toLower(const std::string &str)
-{
-    std::string result = str;
-    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c)
-                   { return std::tolower(c); });
-
-    return result;
-}
+#include <unordered_map>
 
 std::string userRoleToString(UserRole role)
 {
@@ -236,6 +218,16 @@ std::string spiceLevelToString(SpiceLevel level)
     }
 }
 
+SpiceLevel stringToSpiceLevel(const std::string &str)
+{
+    if (str == "low")
+        return SpiceLevel::LOW;
+    if (str == "high")
+        return SpiceLevel::HIGH;
+
+    return SpiceLevel::MEDIUM;
+}
+
 std::string dietCategoryToString(DietCategory category)
 {
     switch (category)
@@ -251,6 +243,16 @@ std::string dietCategoryToString(DietCategory category)
     }
 }
 
+DietCategory stringToDietCategory(const std::string &str)
+{
+    if (str == "vegetarian")
+        return DietCategory::VEGETARIAN;
+    if (str == "eggetarian")
+        return DietCategory::EGGETARIAN;
+
+    return DietCategory::NON_VEGETARIAN;
+}
+
 std::string cuisineCategoryToString(CuisineCategory category)
 {
     switch (category)
@@ -262,26 +264,6 @@ std::string cuisineCategoryToString(CuisineCategory category)
     default:
         return "unknown";
     }
-}
-
-SpiceLevel stringToSpiceLevel(const std::string &str)
-{
-    if (str == "low")
-        return SpiceLevel::LOW;
-    if (str == "high")
-        return SpiceLevel::HIGH;
-
-    return SpiceLevel::MEDIUM;
-}
-
-DietCategory stringToDietCategory(const std::string &str)
-{
-    if (str == "vegetarian")
-        return DietCategory::VEGETARIAN;
-    if (str == "eggetarian")
-        return DietCategory::EGGETARIAN;
-
-    return DietCategory::NON_VEGETARIAN;
 }
 
 CuisineCategory stringToCuisineCategory(const std::string &str)

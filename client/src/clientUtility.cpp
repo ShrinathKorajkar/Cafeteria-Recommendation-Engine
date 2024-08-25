@@ -719,7 +719,7 @@ std::vector<MenuItem> chooseItems(const std::vector<MenuItem> &menu)
 
             std::cout << "\nPress N to see next item"
                       << "\nPress A to add to List"
-                      << "\nPress B Go back" << std::endl;
+                      << "\nPress B Go back or Move to Next Category" << std::endl;
             std::cout << "Enter your choice : ";
             std::getline(std::cin, choice);
 
