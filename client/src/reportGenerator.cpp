@@ -1,4 +1,5 @@
 #include "reportGenerator.h"
+
 #include <fstream>
 
 ReportGenerator::ReportGenerator() {}

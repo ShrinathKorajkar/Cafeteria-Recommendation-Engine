@@ -1,5 +1,8 @@
 #include "admin.h"
+
 #include "exception.h"
+#include "serialization.h"
+
 #include <sstream>
 
 Admin::Admin(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
@@ -9,7 +12,6 @@ std::string Admin::addMenuItem(const MenuItem &item, FoodPreference foodPreferen
 {
     try
     {
-        std::string newItemId;
         std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) + getDelimiterString() + foodPreference.serialze() + getDelimiterString() + item.serialize();
         connection->send(request);
 
@@ -19,6 +21,7 @@ std::string Admin::addMenuItem(const MenuItem &item, FoodPreference foodPreferen
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
+        std::string newItemId;
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::getline(responseStream, newItemId, getDelimiterChar());
@@ -58,7 +61,7 @@ std::string Admin::addUser(const User &user)
     try
     {
         std::string newUserId;
-        std::string request = requestCodeToString(RequestCode::ADD_USER) + getDelimiterString() + user.serialize();
+        std::string request = requestCodeToString(RequestCode::ADD_USER) + getDelimiterString() + Serialization::serializeUser(user);
         connection->send(request);
 
         std::string response = connection->receive();
@@ -118,14 +121,11 @@ std::vector<User> Admin::getAllUsers() const
 
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            int rowCount;
-            std::string tempToken;
-            std::getline(responseStream, tempToken, getDelimiterChar());
-            rowCount = std::stoi(tempToken);
+            int rowCount = std::stoi(extractNextField(responseStream));
 
             for (int i = 0; i < rowCount; i++)
             {
-                users.emplace_back(User::deserialize(responseStream));
+                users.emplace_back(Serialization::deserializeUser(responseStream));
             }
         }
 
@@ -154,15 +154,11 @@ std::vector<MenuItem> Admin::getDiscardedMenuItems() const
 
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(responseStream, tempToken, getDelimiterChar());
-            rowCount = std::stoi(tempToken);
+            int rowCount = std::stoi(extractNextField(responseStream));
 
             for (int i = 0; i < rowCount; i++)
             {
-                menuItems.emplace_back(MenuItem::deserialize(responseStream));
+                menuItems.emplace_back(Serialization::deserializeMenuItem(responseStream));
             }
         }
 
@@ -187,12 +183,7 @@ bool Admin::requestFeedbackForDiscardedItem(const std::string &itemId)
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
-        {
-            return true;
-        }
-
-        return false;
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
     }
     catch (const std::exception &e)
     {
@@ -210,40 +201,14 @@ std::vector<ImprovementFeedback> Admin::getDiscardedItemsFeedback() const
         std::string response = connection->receive();
 
         std::stringstream responseStream(response);
-        std::vector<ImprovementFeedback> feedbacks;
 
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
+        std::vector<ImprovementFeedback> feedbacks;
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            std::string itemName;
-            std::string previousItemName;
-            std::vector<Comment> comments;
-            while (std::getline(responseStream, itemName, getDelimiterChar()))
-            {
-                std::string userName;
-                std::getline(responseStream, userName, getDelimiterChar());
-                std::string comment;
-                std::getline(responseStream, comment, getDelimiterChar());
-                std::string commentDate;
-                std::getline(responseStream, commentDate, getDelimiterChar());
-
-                if (previousItemName == itemName || previousItemName.empty())
-                {
-                    comments.emplace_back(userName, comment, commentDate);
-                }
-                else
-                {
-                    feedbacks.emplace_back(previousItemName, comments);
-                    comments.clear();
-                }
-                previousItemName = itemName;
-            }
-            if (!comments.empty())
-            {
-                feedbacks.emplace_back(previousItemName, comments);
-            }
+            feedbacks = Serialization::deserializeImprovementFeedback(responseStream);
         }
 
         return feedbacks;

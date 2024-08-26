@@ -1,7 +1,10 @@
 #include "chef.h"
+
 #include "exception.h"
 #include "reportGenerator.h"
+#include "serialization.h"
 #include "tcpSocketClient.h"
+
 #include <sstream>
 
 Chef::Chef(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
@@ -50,14 +53,11 @@ std::vector<OrderResponse> Chef::getOrderResponses() const
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::string menuItem;
-            std::string totalItemsStr;
             int totalItems;
 
             while (std::getline(responseStream, menuItem, getDelimiterChar()))
             {
-                std::getline(responseStream, totalItemsStr, getDelimiterChar());
-                totalItems = std::stoi(totalItemsStr);
-
+                totalItems = std::stoi(extractNextField(responseStream));
                 orders.emplace_back(menuItem, totalItems);
             }
         }
@@ -86,15 +86,11 @@ std::vector<MenuItem> Chef::getRecommendedMenu() const
 
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(responseStream, tempToken, getDelimiterChar());
-            rowCount = std::stoi(tempToken);
+            int rowCount = std::stoi(extractNextField(responseStream));
 
             for (int i = 0; i < rowCount; i++)
             {
-                menuItems.emplace_back(MenuItem::deserialize(responseStream));
+                menuItems.emplace_back(Serialization::deserializeMenuItem(responseStream));
             }
         }
 
@@ -125,13 +121,10 @@ std::string Chef::generateReport(const int &month, const int &year) const
 
             std::string itemName;
             std::string orderCountString;
-            int orderCount;
 
             while (std::getline(responseStream, itemName, getDelimiterChar()))
             {
-                std::getline(responseStream, orderCountString, getDelimiterChar());
-                orderCount = std::stoi(orderCountString);
-
+                int orderCount = std::stoi(extractNextField(responseStream));
                 report.emplace_back(itemName, orderCount);
             }
 
@@ -164,15 +157,11 @@ std::vector<MenuItem> Chef::getDiscardedMenuItems() const
 
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(responseStream, tempToken, getDelimiterChar());
-            rowCount = std::stoi(tempToken);
+            int rowCount = std::stoi(extractNextField(responseStream));
 
             for (int i = 0; i < rowCount; i++)
             {
-                menuItems.emplace_back(MenuItem::deserialize(responseStream));
+                menuItems.emplace_back(Serialization::deserializeMenuItem(responseStream));
             }
         }
 
@@ -197,12 +186,7 @@ bool Chef::requestFeedbackForDiscardedItem(const std::string &itemId)
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
-        if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
-        {
-            return true;
-        }
-
-        return false;
+        return stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS;
     }
     catch (const std::exception &e)
     {
@@ -239,41 +223,16 @@ std::vector<ImprovementFeedback> Chef::getDiscardedItemsFeedback() const
         connection->send(request);
 
         std::string response = connection->receive();
+
         std::stringstream responseStream(response);
-        std::vector<ImprovementFeedback> feedbacks;
 
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
+        std::vector<ImprovementFeedback> feedbacks;
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            std::string itemName;
-            std::string previousItemName;
-            std::vector<Comment> comments;
-            while (std::getline(responseStream, itemName, getDelimiterChar()))
-            {
-                std::string userName;
-                std::getline(responseStream, userName, getDelimiterChar());
-                std::string comment;
-                std::getline(responseStream, comment, getDelimiterChar());
-                std::string commentDate;
-                std::getline(responseStream, commentDate, getDelimiterChar());
-
-                if (previousItemName == itemName || previousItemName.empty())
-                {
-                    comments.emplace_back(userName, comment, commentDate);
-                }
-                else
-                {
-                    feedbacks.emplace_back(previousItemName, comments);
-                    comments.clear();
-                }
-                previousItemName = itemName;
-            }
-            if (!comments.empty())
-            {
-                feedbacks.emplace_back(previousItemName, comments);
-            }
+            feedbacks = Serialization::deserializeImprovementFeedback(responseStream);
         }
 
         return feedbacks;

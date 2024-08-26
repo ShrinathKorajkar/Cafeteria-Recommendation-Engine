@@ -1,6 +1,7 @@
 #include "utilityFuncs.h"
 
 #include <algorithm>
+#include <vector>
 
 char getDelimiterChar()
 {
@@ -28,4 +29,17 @@ std::string extractNextField(std::stringstream &dataStream)
         return field;
     }
     return "";
+}
+
+std::vector<MenuItem> getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category)
+{
+    std::vector<MenuItem> filteredItems;
+    for (const auto &menuItem : menuItems)
+    {
+        if (menuItem.getCategory() == category)
+        {
+            filteredItems.push_back(menuItem);
+        }
+    }
+    return filteredItems;
 }

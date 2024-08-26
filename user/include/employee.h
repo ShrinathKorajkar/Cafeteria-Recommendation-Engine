@@ -1,8 +1,8 @@
 #pragma once
 
-#include "user.h"
 #include "menuItem.h"
-#include "tcpSocketClient.h"
+#include "user.h"
+
 #include <vector>
 #include <memory>
 

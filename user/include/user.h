@@ -1,8 +1,9 @@
 #pragma once
 
-#include "utility.h"
 #include "menuItem.h"
 #include "networkConnection.h"
+#include "utility.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -31,7 +32,4 @@ public:
 
     std::vector<MenuItem> getAllMenuItems() const;
     std::vector<std::string> getPendingNotifications();
-
-    std::string serialize() const;
-    static User deserialize(std::stringstream &dataStream);
 };

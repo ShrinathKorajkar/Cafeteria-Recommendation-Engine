@@ -1,5 +1,9 @@
 #include "employee.h"
+
 #include "exception.h"
+#include "serialization.h"
+#include "tcpSocketClient.h"
+
 #include <sstream>
 
 Employee::Employee(const std::string &id, const std::string &name, const std::string &password, int notificationNumber)
@@ -14,22 +18,18 @@ std::vector<MenuItem> Employee::getDailyMenu() const
 
         std::string response = connection->receive();
         std::stringstream responseStream(response);
-        std::vector<MenuItem> menuItems;
 
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
+        std::vector<MenuItem> menuItems;
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
-            int rowCount;
-
-            std::string tempToken;
-            std::getline(responseStream, tempToken, getDelimiterChar());
-            rowCount = std::stoi(tempToken);
+            int rowCount = std::stoi(extractNextField(responseStream));
 
             for (int i = 0; i < rowCount; i++)
             {
-                menuItems.emplace_back(MenuItem::deserialize(responseStream));
+                menuItems.emplace_back(Serialization::deserializeMenuItem(responseStream));
             }
         }
 
@@ -79,18 +79,17 @@ std::vector<OrderItem> Employee::getTodaysOrder() const
 
         std::string response = connection->receive();
         std::stringstream responseStream(response);
-        std::vector<OrderItem> orderItems;
 
         std::string responseStatus;
         std::getline(responseStream, responseStatus, getDelimiterChar());
 
+        std::vector<OrderItem> orderItems;
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::string itemId;
-            std::string name;
             while (std::getline(responseStream, itemId, getDelimiterChar()))
             {
-                std::getline(responseStream, name, getDelimiterChar());
+                std::string name = extractNextField(responseStream);
                 orderItems.emplace_back(OrderItem(itemId, name));
             }
         }
@@ -154,10 +153,9 @@ std::vector<ImprovementItem> Employee::getItemsToImprove() const
         if (stringToResponseStatus(responseStatus) == ResponseStatus::SUCCESS)
         {
             std::string itemId;
-            std::string name;
             while (std::getline(responseStream, itemId, getDelimiterChar()))
             {
-                std::getline(responseStream, name, getDelimiterChar());
+                std::string name = extractNextField(responseStream);
                 items.emplace_back(itemId, name);
             }
         }

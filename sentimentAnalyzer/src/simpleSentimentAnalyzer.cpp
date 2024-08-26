@@ -1,6 +1,7 @@
 #include "simpleSentimentAnalyzer.h"
-#include <fstream>
+
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 
 SimpleSentimentAnalyzer::SimpleSentimentAnalyzer(const std::string &positiveSentimentsFile, const std::string &negativeSentimentsFile)

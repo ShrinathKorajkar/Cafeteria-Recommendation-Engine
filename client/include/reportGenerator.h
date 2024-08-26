@@ -17,10 +17,11 @@ class ReportGenerator
 private:
     const std::string filename = "./assets/food_report.csv";
 
-    void writeHeader(std::ofstream &outFile);
-    void writeData(const std::vector<ReportData> &reportData, std::ofstream &outFile);
-
 public:
     ReportGenerator();
     std::string generateReport(const std::vector<ReportData> &reportData);
+
+private:
+    void writeHeader(std::ofstream &outFile);
+    void writeData(const std::vector<ReportData> &reportData, std::ofstream &outFile);
 };

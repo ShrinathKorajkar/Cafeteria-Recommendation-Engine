@@ -5,8 +5,8 @@
 #include "queryExecutor.h"
 
 #include <memory>
-#include <mysql_driver.h>
 #include <cppconn/driver.h>
+#include <mysql_driver.h>
 
 class MySQLDatabase : public Database
 {

@@ -3,11 +3,11 @@
 #include "admin.h"
 #include "chef.h"
 #include "employee.h"
-#include "user.h"
 #include "utility.h"
 
 #include <iostream>
 #include <sstream>
+
 std::unique_ptr<User> Authenticator::authenticateUser(const std::string &username, const std::string &password)
 {
     const std::string requestData = buildLoginRequest(username, password);

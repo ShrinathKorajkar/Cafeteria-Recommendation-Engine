@@ -756,10 +756,10 @@ void rollOutTomorrowMenu(Chef *chef)
         return;
     }
 
-    std::vector<MenuItem> breakfastItems = MenuItem::getAllItemsByCategory(menuItems, FoodCategory::BREAKFAST);
-    std::vector<MenuItem> lunchItems = MenuItem::getAllItemsByCategory(menuItems, FoodCategory::LUNCH);
-    std::vector<MenuItem> dinnerItems = MenuItem::getAllItemsByCategory(menuItems, FoodCategory::DINNER);
-    std::vector<MenuItem> allDayItems = MenuItem::getAllItemsByCategory(menuItems, FoodCategory::ALL);
+    std::vector<MenuItem> breakfastItems = getAllItemsByCategory(menuItems, FoodCategory::BREAKFAST);
+    std::vector<MenuItem> lunchItems = getAllItemsByCategory(menuItems, FoodCategory::LUNCH);
+    std::vector<MenuItem> dinnerItems = getAllItemsByCategory(menuItems, FoodCategory::DINNER);
+    std::vector<MenuItem> allDayItems = getAllItemsByCategory(menuItems, FoodCategory::ALL);
 
     std::cin.ignore();
     std::cout << "\nList of Recommended Menu Items" << std::endl;

@@ -28,12 +28,4 @@ public:
   bool dislike();
   bool addComment(const std::string &comment, const std::string &userName);
   bool updateSentiments(const std::string &sentiment);
-
-  std::string serialize() const;
-  static MenuItem deserialize(std::stringstream &dataStream);
-  static std::vector<MenuItem> getAllItemsByCategory(const std::vector<MenuItem> &menuItems, FoodCategory category);
-
-private:
-  static std::vector<std::string> MenuItem::extractSentiments(std::stringstream &dataStream);
-  static std::vector<Comment> MenuItem::extractComments(std::stringstream &dataStream);
 };

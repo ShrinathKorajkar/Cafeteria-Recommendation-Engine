@@ -2,6 +2,7 @@
 
 #include "networkConnection.h"
 #include "utility.h"
+
 #include <memory>
 #include <netinet/in.h>
 #include <string>
