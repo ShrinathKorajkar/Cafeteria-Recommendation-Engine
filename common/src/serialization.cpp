@@ -128,3 +128,11 @@ std::vector<ImprovementFeedback> Serialization::deserializeImprovementFeedbacks(
 
     return feedbacks;
 }
+
+std::string Serialization::serializeFoodPreference(const FoodPreference &foodPreference) const
+{
+    return dietCategoryToString(foodPreference.dietCategory) + getDelimiterString() +
+           spiceLevelToString(foodPreference.spiceLevel) + getDelimiterString() +
+           cuisineCategoryToString(foodPreference.cuisineCategory) + getDelimiterString() +
+           std::to_string(foodPreference.sweetTooth);
+}

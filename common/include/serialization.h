@@ -17,6 +17,8 @@ public:
 
     static ImprovementFeedback deserializeImprovementFeedback(std::stringstream &dataStream);
 
+    static std::string serializeFoodPreference(const FoodPreference &foodPreference) const;
+
 private:
     static std::vector<std::string> MenuItem::extractMenuItemSentiments(std::stringstream &dataStream);
     static std::vector<Comment> MenuItem::extractMenuItemComments(std::stringstream &dataStream);

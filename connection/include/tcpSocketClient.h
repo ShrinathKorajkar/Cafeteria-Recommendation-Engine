@@ -14,11 +14,9 @@ private:
     std::string serverAddress;
     int port;
     int clientSocket;
-    static constexpr int MAX_DATA_TRANSFER_SIZE = 32768;
+    static constexpr int MAX_DATA_TRANSFER_SIZE = 32768; // 2 ^ 15
 
     static std::shared_ptr<TCPSocketClient> instance;
-
-    TCPSocketClient(const std::string &serverAddress, int port);
 
 public:
     static void createInstance(const std::string &serverAddress, int port);
@@ -29,4 +27,12 @@ public:
     bool disconnect() override;
     bool send(const std::string &message) override;
     std::string receive() override;
+
+private:
+    TCPSocketClient(const std::string &serverAddress, int port);
+    TCPSocketClient(const TCPSocketClient &) = delete;
+    TCPSocketClient &operator=(const TCPSocketClient &) = delete;
+
+    bool initializeSocket();
+    bool connectToServer();
 };

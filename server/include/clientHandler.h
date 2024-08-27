@@ -53,5 +53,6 @@ private:
     void handleUpdateFoodPreference(std::stringstream &receivedMessageStream);
 
     bool updateRecommendRating(const std::string &itemId);
+
     std::string getCurrentDate();
 };

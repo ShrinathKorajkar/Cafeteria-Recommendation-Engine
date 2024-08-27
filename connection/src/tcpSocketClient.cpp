@@ -33,14 +33,18 @@ std::shared_ptr<TCPSocketClient> TCPSocketClient::getInstance()
     return instance;
 }
 
-bool TCPSocketClient::connect()
+bool TCPSocketClient::initializeSocket()
 {
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0)
     {
         throw NetworkConnectionException("Socket creation failed");
     }
+    return true;
+}
 
+bool TCPSocketClient::connectToServer()
+{
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(port);
 
@@ -57,14 +61,23 @@ bool TCPSocketClient::connect()
     return true;
 }
 
+bool TCPSocketClient::connect()
+{
+    if (initializeSocket())
+    {
+        return connectToServer();
+    }
+    return false;
+}
+
 bool TCPSocketClient::disconnect()
 {
     if (clientSocket != -1)
     {
         send(requestCodeToString(RequestCode::CLOSE_CONNECTION));
+        close(clientSocket);
+        clientSocket = -1;
     }
-    close(clientSocket);
-    clientSocket = -1;
     return true;
 }
 
