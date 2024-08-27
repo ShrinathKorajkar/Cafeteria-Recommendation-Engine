@@ -16,8 +16,8 @@ public:
     std::unique_ptr<User> authenticateUser(const std::string &username, const std::string &password);
 
 private:
-    std::string Authenticator::buildLoginRequest(const std::string &username, const std::string &password) const;
-    std::unique_ptr<User> Authenticator::parseAuthenticationResponse(const std::string &response) const;
-    std::unique_ptr<User> Authenticator::createUser(const User &user) const;
-    std::unique_ptr<User> Authenticator::createDefaultUser() const;
+    std::string buildLoginRequest(const std::string &username, const std::string &password) const;
+    std::unique_ptr<User> parseAuthenticationResponse(const std::string &response) const;
+    std::unique_ptr<User> createUser(const User &user) const;
+    std::unique_ptr<User> createDefaultUser() const;
 };

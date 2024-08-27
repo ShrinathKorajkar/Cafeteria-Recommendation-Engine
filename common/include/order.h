@@ -7,7 +7,8 @@ struct OrderItem
     std::string menuItemId;
     std::string menuItemName;
 
-    OrderItem(const std::string &id, const std::string &name) : menuItemId(id), menuItemName(name) {}
+    OrderItem(const std::string &id, const std::string &name)
+        : menuItemId(id), menuItemName(name) {}
 };
 
 struct OrderResponse
@@ -15,5 +16,6 @@ struct OrderResponse
     std::string foodName;
     int totalOrders;
 
-    OrderResponse(const std::string &name, int orders) : foodName(name), totalOrders(orders) {}
+    OrderResponse(const std::string &name, int orders)
+        : foodName(name), totalOrders(orders) {}
 };

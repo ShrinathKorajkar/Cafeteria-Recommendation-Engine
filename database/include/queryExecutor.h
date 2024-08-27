@@ -5,6 +5,8 @@
 #include <cppconn/resultset.h>
 
 #include <memory>
+#include <string>
+#include <vector>
 
 class QueryExecutor
 {

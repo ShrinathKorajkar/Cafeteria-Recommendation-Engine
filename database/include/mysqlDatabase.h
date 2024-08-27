@@ -4,9 +4,10 @@
 #include "databaseConfig.h"
 #include "queryExecutor.h"
 
-#include <memory>
 #include <cppconn/driver.h>
 #include <mysql_driver.h>
+
+#include <memory>
 
 class MySQLDatabase : public Database
 {

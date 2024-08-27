@@ -2,9 +2,6 @@
 
 #include "sentimentAnalyzer.h"
 
-#include <string>
-#include <vector>
-
 class SimpleSentimentAnalyzer : public SentimentAnalyzer
 {
 private:

@@ -1,13 +1,14 @@
 #include "tcpSocketServer.h"
+
+#include "clientHandler.h"
 #include "exception.h"
 #include "mysqlDatabase.h"
-#include "clientHandler.h"
 
 #include <iostream>
 #include <unistd.h>
 #include <sstream>
 
-TCPSocketServer::TCPSocketServer(int port, std::shared_ptr<Database> database, std::shared_ptr<SentimentAnalyzer> analyzer)
+TCPSocketServer::TCPSocketServer(const int &port, std::shared_ptr<Database> database, std::shared_ptr<SentimentAnalyzer> analyzer)
     : port(port), database(database), analyzer(analyzer), running(false), serverFd(-1)
 {
     initializeSocket();

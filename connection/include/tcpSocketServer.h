@@ -33,6 +33,11 @@ public:
     std::string receive() override;
 
 private:
+    void initializeSocket();
+    void configureSocketOptions();
+    void configureServerAddress();
+    bool bindSocket();
+    bool startListening();
+    void acceptConnections();
     void handleClient(int clientSocket);
-    bool initializeServerSocket();
 };

@@ -2,8 +2,6 @@
 
 #include <fstream>
 
-ReportGenerator::ReportGenerator() {}
-
 std::string ReportGenerator::generateReport(const std::vector<ReportData> &reportData)
 {
     std::ofstream reportFile(filename);

@@ -28,11 +28,13 @@ void startClient()
         }
         else if (user->getRole() == UserRole::CHEF)
         {
-            showChefMenu(user);
+            ChefUI chefUI(user);
+            chefUI.showChefMenu();
         }
         else
         {
-            showEmployeeMenu(user);
+            EmployeeUI employeeUI(user);
+            employeeUI.showEmployeeMenu();
         }
         client->disconnect();
     }

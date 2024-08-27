@@ -12,7 +12,9 @@ std::string Admin::addMenuItem(const MenuItem &item, FoodPreference foodPreferen
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) + getDelimiterString() + foodPreference.serialze() + getDelimiterString() + item.serialize();
+        std::string request = requestCodeToString(RequestCode::ADD_MENU_ITEM) +
+                              getDelimiterString() + Serialization::serializeFoodPreference(foodPreference) +
+                              getDelimiterString() + Serialization::serializeMenuItem(item);
         connection->send(request);
 
         std::string response = connection->receive();
@@ -39,7 +41,8 @@ bool Admin::deleteMenuItem(const std::string &itemId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::DELETE_MENU_ITEM) + getDelimiterString() + itemId;
+        std::string request = requestCodeToString(RequestCode::DELETE_MENU_ITEM) +
+                              getDelimiterString() + itemId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -61,7 +64,8 @@ std::string Admin::addUser(const User &user)
     try
     {
         std::string newUserId;
-        std::string request = requestCodeToString(RequestCode::ADD_USER) + getDelimiterString() + Serialization::serializeUser(user);
+        std::string request = requestCodeToString(RequestCode::ADD_USER) +
+                              getDelimiterString() + Serialization::serializeUser(user);
         connection->send(request);
 
         std::string response = connection->receive();
@@ -87,7 +91,8 @@ bool Admin::deleteUser(const std::string &userId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::DELETE_USER) + getDelimiterString() + userId;
+        std::string request = requestCodeToString(RequestCode::DELETE_USER) +
+                              getDelimiterString() + userId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -174,7 +179,8 @@ bool Admin::requestFeedbackForDiscardedItem(const std::string &itemId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK) + getDelimiterString() + itemId;
+        std::string request = requestCodeToString(RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK) +
+                              getDelimiterString() + itemId;
         connection->send(request);
 
         std::string response = connection->receive();

@@ -13,7 +13,8 @@ std::vector<MenuItem> Employee::getDailyMenu() const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GET_DAILY_MENU) + getDelimiterString() + userId;
+        std::string request = requestCodeToString(RequestCode::GET_DAILY_MENU) +
+                              getDelimiterString() + userId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -45,7 +46,8 @@ bool Employee::orderFood(const std::vector<MenuItem> &foodItems) const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::ORDER_FOOD) + getDelimiterString() + getId();
+        std::string request = requestCodeToString(RequestCode::ORDER_FOOD) +
+                              getDelimiterString() + getId();
 
         for (const auto &item : foodItems)
         {
@@ -74,7 +76,8 @@ std::vector<OrderItem> Employee::getTodaysOrder() const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GET_TODAYS_ORDER) + getDelimiterString() + getId();
+        std::string request = requestCodeToString(RequestCode::GET_TODAYS_ORDER) +
+                              getDelimiterString() + getId();
         connection->send(request);
 
         std::string response = connection->receive();
@@ -106,7 +109,9 @@ bool Employee::likeOrDislikeItem(const std::string &itemId, const LikeStatus &li
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::LIKE_DISLIKE) + getDelimiterString() + itemId + getDelimiterString() + likeStatusToString(likeStatus);
+        std::string request = requestCodeToString(RequestCode::LIKE_DISLIKE) +
+                              getDelimiterString() + itemId +
+                              getDelimiterString() + likeStatusToString(likeStatus);
         connection->send(request);
 
         std::string responseStatus = connection->receive();
@@ -123,8 +128,10 @@ bool Employee::provideFeedback(const std::string &itemId, const std::string &com
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GIVE_FEEDBACK) + getDelimiterString() +
-                              itemId + getDelimiterString() + getId() + getDelimiterString() + comment;
+        std::string request = requestCodeToString(RequestCode::GIVE_FEEDBACK) +
+                              getDelimiterString() + itemId +
+                              getDelimiterString() + getId() +
+                              getDelimiterString() + comment;
         connection->send(request);
 
         std::string responseStatus = connection->receive();
@@ -172,8 +179,10 @@ bool Employee::giveImprovementFeedback(const std::string &itemId, const std::str
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GIVE_IMPROVEMENT_FEEDBACK) + getDelimiterString() +
-                              itemId + getDelimiterString() + getId() + getDelimiterString() + comment;
+        std::string request = requestCodeToString(RequestCode::GIVE_IMPROVEMENT_FEEDBACK) +
+                              getDelimiterString() + itemId +
+                              getDelimiterString() + getId() +
+                              getDelimiterString() + comment;
         connection->send(request);
 
         std::string responseStatus = connection->receive();
@@ -189,7 +198,9 @@ bool Employee::updateFoodPreference(const FoodPreference &foodPreference) const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::UPDATE_FOOD_PREFERENCE) + getDelimiterString() + userId + getDelimiterString() + foodPreference.serialze();
+        std::string request = requestCodeToString(RequestCode::UPDATE_FOOD_PREFERENCE) +
+                              getDelimiterString() + userId +
+                              getDelimiterString() + Serialization::serializeFoodPreference(foodPreference);
         connection->send(request);
 
         std::string responseStatus = connection->receive();

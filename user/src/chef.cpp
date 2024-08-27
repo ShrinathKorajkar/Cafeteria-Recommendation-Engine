@@ -14,7 +14,8 @@ bool Chef::rollOutDailyMenu(const std::vector<MenuItem> &items)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::ROLL_OUT_DAILY_MENU) + getDelimiterString() + std::to_string(items.size());
+        std::string request = requestCodeToString(RequestCode::ROLL_OUT_DAILY_MENU) +
+                              getDelimiterString() + std::to_string(items.size());
 
         for (const auto &item : items)
         {
@@ -106,8 +107,9 @@ std::string Chef::generateReport(const int &month, const int &year) const
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::GENERATE_REPORT) + getDelimiterString() +
-                              std::to_string(month) + getDelimiterString() + std::to_string(year);
+        std::string request = requestCodeToString(RequestCode::GENERATE_REPORT) +
+                              getDelimiterString() + std::to_string(month) +
+                              getDelimiterString() + std::to_string(year);
         connection->send(request);
 
         std::string response = connection->receive();
@@ -177,7 +179,8 @@ bool Chef::requestFeedbackForDiscardedItem(const std::string &itemId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK) + getDelimiterString() + itemId;
+        std::string request = requestCodeToString(RequestCode::REQUEST_DISCARDED_ITEM_FEEDBACK) +
+                              getDelimiterString() + itemId;
         connection->send(request);
 
         std::string response = connection->receive();
@@ -198,7 +201,8 @@ bool Chef::deleteMenuItem(const std::string &itemId)
 {
     try
     {
-        std::string request = requestCodeToString(RequestCode::DELETE_MENU_ITEM) + getDelimiterString() + itemId;
+        std::string request = requestCodeToString(RequestCode::DELETE_MENU_ITEM) +
+                              getDelimiterString() + itemId;
         connection->send(request);
 
         std::string response = connection->receive();

@@ -18,7 +18,6 @@ private:
     const std::string filename = "./assets/food_report.csv";
 
 public:
-    ReportGenerator();
     std::string generateReport(const std::vector<ReportData> &reportData);
 
 private:

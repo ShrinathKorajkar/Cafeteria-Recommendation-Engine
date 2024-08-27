@@ -15,7 +15,7 @@ public:
     std::string serializeMenuItem(const MenuItem &menuItem) const;
     static MenuItem deserializeMenuItem(std::stringstream &dataStream);
 
-    static ImprovementFeedback deserializeImprovementFeedback(std::stringstream &dataStream);
+    static std::vector<ImprovementFeedback> deserializeImprovementFeedbacks(std::stringstream &dataStream);
 
     static std::string serializeFoodPreference(const FoodPreference &foodPreference) const;
 
